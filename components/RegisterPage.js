@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { View, TextInput, Text, StyleSheet, Button } from "react-native";
+import firebase from "../firebaseDb";
 
 export default class RegisterPage extends Component {
   state = {
@@ -10,12 +11,23 @@ export default class RegisterPage extends Component {
   };
 
   handleCreateUser = () =>
-    this.setState({
-      username: "",
-      email: "",
-      password: "",
-      registerSuccess: true,
-    });
+    firebase
+      .firestore()
+      .collection("users")
+      .add({
+        username: this.state.username,
+        email: this.state.email,
+        password: this.state.password,
+      })
+      .then(() =>
+        this.setState({
+          username: "",
+          email: "",
+          password: "",
+          registerSuccess: true,
+        })
+      )
+      .catch((err) => console.error(err));
 
   handleUpdateUsername = (username) => this.setState({ username });
 
