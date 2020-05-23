@@ -1,11 +1,12 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import RegisterPage from "./components/RegisterPage";
+import LoginPage from "./components/LoginPage";
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <RegisterPage />
+      <LoginPage />
     </View>
   );
 }
