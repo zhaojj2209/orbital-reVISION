@@ -1,13 +1,21 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+
 import RegisterPage from "./components/RegisterPage";
 import LoginPage from "./components/LoginPage";
 
+const Stack = createStackNavigator();
+
 export default function App() {
   return (
-    <View style={styles.container}>
-      <LoginPage />
-    </View>
+    <NavigationContainer style={styles.container}>
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen name="Login" component={LoginPage} />
+        <Stack.Screen name="Register" component={RegisterPage} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 

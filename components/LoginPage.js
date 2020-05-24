@@ -8,6 +8,7 @@ import {
   Keyboard,
   Alert,
 } from "react-native";
+
 import firebase from "../firebaseDb";
 
 export default class LoginPage extends React.Component {
@@ -49,6 +50,7 @@ export default class LoginPage extends React.Component {
 
   render() {
     const { email, password } = this.state;
+    const { navigation } = this.props;
 
     return (
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -73,6 +75,11 @@ export default class LoginPage extends React.Component {
                 this.handleLookupUser(email, password);
               }
             }}
+          />
+          <Button
+            title="Register"
+            style={styles.button}
+            onPress={() => navigation.navigate("Register")}
           />
         </View>
       </TouchableWithoutFeedback>
