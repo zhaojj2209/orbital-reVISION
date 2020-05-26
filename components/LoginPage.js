@@ -19,29 +19,20 @@ export default class LoginPage extends React.Component {
 
   handleLookupUser = (email, password) =>
     firebase
-      .firestore()
-      .collection("users")
-      .get()
-      .then((querySnapshot) => {
-        const results = [];
-        querySnapshot.docs.map((documentSnapshot) =>
-          results.push(documentSnapshot.data())
-        );
-        results
-          .filter((item) => item.email == email)
-          .filter((item) => item.password == password).length > 0
-          ? Alert.alert("Login Successful", "Press OK to continue", [
-              {
-                text: "OK",
-                onPress: () =>
-                  this.setState({
-                    email: "",
-                    password: "",
-                  }),
-              },
-            ])
-          : Alert.alert("User not found");
-      })
+      .auth()
+      .signInWithEmailAndPassword(this.state.email, this.state.password)
+      .then((res) =>
+        Alert.alert("Login Successful", "User: " + res.user.email, [
+          {
+            text: "OK",
+            onPress: () =>
+              this.setState({
+                email: "",
+                password: "",
+              }),
+          },
+        ])
+      )
       .catch((err) => console.error(err));
 
   handleUpdateEmail = (email) => this.setState({ email });

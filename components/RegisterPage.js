@@ -20,15 +20,10 @@ export default class RegisterPage extends React.Component {
 
   handleCreateUser = () =>
     firebase
-      .firestore()
-      .collection("users")
-      .add({
-        username: this.state.username,
-        email: this.state.email,
-        password: this.state.password,
-      })
+      .auth()
+      .createUserWithEmailAndPassword(this.state.email, this.state.password)
       .then(() =>
-        Alert.alert("Registration Successful!", "Press OK to continue", [
+        Alert.alert("Registration Successful!", "", [
           {
             text: "OK",
             onPress: () =>
