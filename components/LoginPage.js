@@ -22,16 +22,27 @@ export default class LoginPage extends React.Component {
       .auth()
       .signInWithEmailAndPassword(this.state.email, this.state.password)
       .then((res) =>
-        Alert.alert("Login Successful", "User: " + res.user.email, [
-          {
-            text: "OK",
-            onPress: () =>
-              this.setState({
-                email: "",
-                password: "",
-              }),
-          },
-        ])
+        firebase
+          .firestore()
+          .collection("users")
+          .doc(res.user.uid)
+          .get()
+          .then((doc) =>
+            Alert.alert(
+              "Login Successful",
+              "Username: " + doc.data().username,
+              [
+                {
+                  text: "OK",
+                  onPress: () =>
+                    this.setState({
+                      email: "",
+                      password: "",
+                    }),
+                },
+              ]
+            )
+          )
       )
       .catch((err) => console.error(err));
 

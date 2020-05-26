@@ -23,6 +23,15 @@ export default class RegisterPage extends React.Component {
       .auth()
       .createUserWithEmailAndPassword(this.state.email, this.state.password)
       .then(() =>
+        firebase
+          .firestore()
+          .collection("users")
+          .doc(firebase.auth().currentUser.uid)
+          .set({
+            username: this.state.username,
+          })
+      )
+      .then(() =>
         Alert.alert("Registration Successful!", "", [
           {
             text: "OK",
