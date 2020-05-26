@@ -18,7 +18,7 @@ export default class RegisterPage extends React.Component {
     password: "",
   };
 
-  handleCreateUser = () =>
+  handleCreateUser = (navigation) =>
     firebase
       .auth()
       .createUserWithEmailAndPassword(this.state.email, this.state.password)
@@ -31,19 +31,19 @@ export default class RegisterPage extends React.Component {
             username: this.state.username,
           })
       )
-      .then(() =>
+      .then(() => {
+        this.setState({
+          username: "",
+          email: "",
+          password: "",
+        });
         Alert.alert("Registration Successful!", "", [
           {
             text: "OK",
-            onPress: () =>
-              this.setState({
-                username: "",
-                email: "",
-                password: "",
-              }),
+            onPress: () => navigation.navigate("Home"),
           },
-        ])
-      )
+        ]);
+      })
       .catch((err) => console.error(err));
 
   handleUpdateUsername = (username) => this.setState({ username });
@@ -82,14 +82,9 @@ export default class RegisterPage extends React.Component {
             style={styles.button}
             onPress={() => {
               if (username.length && email.length && password.length) {
-                this.handleCreateUser();
+                this.handleCreateUser(navigation);
               }
             }}
-          />
-          <Button
-            title="Login"
-            style={styles.button}
-            onPress={() => navigation.goBack()}
           />
         </View>
       </TouchableWithoutFeedback>

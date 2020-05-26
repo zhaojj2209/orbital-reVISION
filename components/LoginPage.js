@@ -17,32 +17,32 @@ export default class LoginPage extends React.Component {
     password: "",
   };
 
-  handleLookupUser = (email, password) =>
+  handleLookupUser = (email, password, navigation) =>
     firebase
       .auth()
-      .signInWithEmailAndPassword(this.state.email, this.state.password)
+      .signInWithEmailAndPassword(email, password)
       .then((res) =>
         firebase
           .firestore()
           .collection("users")
           .doc(res.user.uid)
           .get()
-          .then((doc) =>
+          .then((doc) => {
+            this.setState({
+              email: "",
+              password: "",
+            });
             Alert.alert(
               "Login Successful",
               "Username: " + doc.data().username,
               [
                 {
                   text: "OK",
-                  onPress: () =>
-                    this.setState({
-                      email: "",
-                      password: "",
-                    }),
+                  onPress: () => navigation.navigate("Home"),
                 },
               ]
-            )
-          )
+            );
+          })
       )
       .catch((err) => console.error(err));
 
@@ -74,7 +74,7 @@ export default class LoginPage extends React.Component {
             style={styles.button}
             onPress={() => {
               if (email.length && password.length) {
-                this.handleLookupUser(email, password);
+                this.handleLookupUser(email, password, navigation);
               }
             }}
           />
