@@ -1,11 +1,17 @@
 import React from "react";
-import { StyleSheet, View, Text, Button } from "react-native";
+import { StyleSheet } from "react-native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
+import CalendarPage from "./CalendarPage";
+import TaskPage from "./TaskPage";
 import firebase from "../firebaseDb";
+
+const Tab = createBottomTabNavigator();
 
 export default class Homepage extends React.Component {
   state = {
     username: "",
+    isLoaded: false,
   };
   componentDidMount() {
     const user = firebase.auth().currentUser;
@@ -17,35 +23,24 @@ export default class Homepage extends React.Component {
       .then((doc) =>
         this.setState({
           username: doc.data().username,
+          isLoaded: true,
         })
       );
   }
   render() {
-    const { navigation } = this.props;
-    const welcomeText = "Welcome, " + this.state.username + "!";
-    return (
-      <View style={styles.container}>
-        <Text>{welcomeText}</Text>
-        <Button
-          title="Logout"
-          style={styles.button}
-          onPress={() =>
-            firebase
-              .auth()
-              .signOut()
-              .then(() => navigation.navigate("Login"))
-          }
+    return this.state.isLoaded ? (
+      <Tab.Navigator initialRouteName="Calendar">
+        <Tab.Screen
+          name="Calendar"
+          component={CalendarPage}
+          initialParams={this.state}
         />
-      </View>
-    );
+        <Tab.Screen
+          name="Tasks"
+          component={TaskPage}
+          initialParams={this.state}
+        />
+      </Tab.Navigator>
+    ) : null;
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
