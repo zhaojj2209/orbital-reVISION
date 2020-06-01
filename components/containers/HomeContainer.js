@@ -1,15 +1,16 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import CalendarPage from "./CalendarPage";
-import TaskPage from "./TaskPage";
+import CalendarScreen from "../screens/CalendarScreen";
+import TaskScreen from "../screens/TaskScreen";
 import firebase from "../firebaseDb";
 
 const Tab = createBottomTabNavigator();
 
-export default class Homepage extends React.Component {
+export default class HomeContainer extends React.Component {
   state = {
+    uid: "",
     username: "",
     isLoaded: false,
   };
@@ -22,6 +23,7 @@ export default class Homepage extends React.Component {
       .get()
       .then((doc) =>
         this.setState({
+          uid: user.uid,
           username: doc.data().username,
           isLoaded: true,
         })
@@ -32,15 +34,17 @@ export default class Homepage extends React.Component {
       <Tab.Navigator initialRouteName="Calendar">
         <Tab.Screen
           name="Calendar"
-          component={CalendarPage}
+          component={CalendarScreen}
           initialParams={this.state}
         />
         <Tab.Screen
           name="Tasks"
-          component={TaskPage}
+          component={TaskScreen}
           initialParams={this.state}
         />
       </Tab.Navigator>
-    ) : null;
+    ) : (
+      <ActivityIndicator />
+    );
   }
 }

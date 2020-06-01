@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, Button } from "react-native";
 
 import firebase from "../firebaseDb";
 
-export default class CalendarPage extends React.Component {
+export default class CalendarScreen extends React.Component {
   render() {
     const { route, navigation } = this.props;
     const { username } = route.params;

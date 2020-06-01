@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, Button } from "react-native";
 
 import firebase from "../firebaseDb";
 
-export default class TaskPage extends React.Component {
+export default class TaskScreen extends React.Component {
   render() {
     const { route, navigation } = this.props;
     const { username } = route.params;
