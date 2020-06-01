@@ -2,7 +2,7 @@ import React from "react";
 import { ActivityIndicator } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import CalendarScreen from "../screens/CalendarScreen";
+import CalendarContainer from "../containers/CalendarContainer";
 import TaskScreen from "../screens/TaskScreen";
 import firebase from "../firebaseDb";
 
@@ -34,13 +34,13 @@ export default class HomeContainer extends React.Component {
       <Tab.Navigator initialRouteName="Calendar">
         <Tab.Screen
           name="Calendar"
-          component={CalendarScreen}
-          initialParams={this.state}
+          component={CalendarContainer}
+          initialParams={{ uid: this.state.uid, username: this.state.username }}
         />
         <Tab.Screen
           name="Tasks"
           component={TaskScreen}
-          initialParams={this.state}
+          initialParams={{ uid: this.state.uid, username: this.state.username }}
         />
       </Tab.Navigator>
     ) : (
