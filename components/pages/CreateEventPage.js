@@ -17,11 +17,11 @@ export default class CreateEventPage extends React.Component {
     description: "",
   };
 
-  handleCreateEvent = (uid, navigation) =>
+  handleCreateEvent = (userId, navigation) =>
     firebase
       .firestore()
       .collection("users")
-      .doc(uid)
+      .doc(userId)
       .collection("events")
       .add({ title: this.state.title, description: this.state.description })
       .then(() => {
@@ -45,7 +45,7 @@ export default class CreateEventPage extends React.Component {
   render() {
     const { title, description } = this.state;
     const { route, navigation } = this.props;
-    const { uid } = route.params;
+    const { userId } = route.params;
 
     return (
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -67,7 +67,7 @@ export default class CreateEventPage extends React.Component {
             style={styles.button}
             onPress={() => {
               if (title.length) {
-                this.handleCreateEvent(uid, navigation);
+                this.handleCreateEvent(userId, navigation);
               }
             }}
           />

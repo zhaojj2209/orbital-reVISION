@@ -16,11 +16,11 @@ export default class CalendarScreen extends React.Component {
   state = { isLoaded: false, events: null };
   componentDidMount() {
     const { route } = this.props;
-    const { uid } = route.params;
+    const { userId } = route.params;
     unsubscribe = firebase
       .firestore()
       .collection("users")
-      .doc(uid)
+      .doc(userId)
       .collection("events")
       .onSnapshot(
         (querySnapshot) => {
@@ -43,7 +43,7 @@ export default class CalendarScreen extends React.Component {
 
   render() {
     const { route, navigation } = this.props;
-    const { username, uid } = route.params;
+    const { username, userId } = route.params;
     const { isLoaded, events } = this.state;
     const welcomeText = "Welcome to the calendar view, " + username + "!";
     return isLoaded ? (
@@ -52,16 +52,16 @@ export default class CalendarScreen extends React.Component {
         <FlatList
           data={events}
           renderItem={({ item }) => (
-            <View>
-              <Text>{item.data.title}</Text>
-              <Text>{item.data.description}</Text>
+            <View style={styles.event}>
+              <Text style={styles.text}>{item.data.title}</Text>
+              <Text style={styles.text}>{item.data.description}</Text>
             </View>
           )}
         />
         <Button
           title="Create New Event"
           style={styles.button}
-          onPress={() => navigation.navigate("CreateEvent", { uid: uid })}
+          onPress={() => navigation.navigate("CreateEvent", { userId: userId })}
         />
         <Button
           title="Logout"
@@ -83,8 +83,23 @@ export default class CalendarScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: "column",
     backgroundColor: "#fff",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-around",
+  },
+  event: {
+    flexDirection: "row",
+    backgroundColor: "#f9c2ff",
+    padding: 20,
+    marginVertical: 8,
+    marginHorizontal: 16,
+  },
+  text: {
+    fontSize: 20,
+    padding: 10,
+  },
+  button: {
+    marginTop: 42,
   },
 });

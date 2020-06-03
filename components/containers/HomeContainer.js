@@ -10,7 +10,7 @@ const Tab = createBottomTabNavigator();
 
 export default class HomeContainer extends React.Component {
   state = {
-    uid: "",
+    userId: "",
     username: "",
     isLoaded: false,
   };
@@ -23,7 +23,7 @@ export default class HomeContainer extends React.Component {
       .get()
       .then((doc) =>
         this.setState({
-          uid: user.uid,
+          userId: user.uid,
           username: doc.data().username,
           isLoaded: true,
         })
@@ -35,12 +35,18 @@ export default class HomeContainer extends React.Component {
         <Tab.Screen
           name="Calendar"
           component={CalendarContainer}
-          initialParams={{ uid: this.state.uid, username: this.state.username }}
+          initialParams={{
+            userId: this.state.userId,
+            username: this.state.username,
+          }}
         />
         <Tab.Screen
           name="Tasks"
           component={TaskScreen}
-          initialParams={{ uid: this.state.uid, username: this.state.username }}
+          initialParams={{
+            userId: this.state.userId,
+            username: this.state.username,
+          }}
         />
       </Tab.Navigator>
     ) : (
