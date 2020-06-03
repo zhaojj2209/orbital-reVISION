@@ -7,6 +7,7 @@ import {
   Button,
   ActivityIndicator,
   FlatList,
+  Alert,
 } from "react-native";
 
 import firebase from "../firebaseDb";
@@ -41,6 +42,26 @@ export default class CalendarScreen extends React.Component {
     unsubscribe();
   }
 
+  handleDeleteEvent(eventId) {
+    const { route } = this.props;
+    const { userId } = route.params;
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .collection("events")
+      .doc(eventId)
+      .delete()
+      .then(() =>
+        Alert.alert("Event Deleted", "", [
+          {
+            text: "OK",
+            onPress: () => {},
+          },
+        ])
+      );
+  }
+
   render() {
     const { route, navigation } = this.props;
     const { username, userId } = route.params;
@@ -55,6 +76,22 @@ export default class CalendarScreen extends React.Component {
             <View style={styles.event}>
               <Text style={styles.text}>{item.data.title}</Text>
               <Text style={styles.text}>{item.data.description}</Text>
+              <Button
+                title="Delete"
+                style={styles.button}
+                onPress={() =>
+                  Alert.alert("Confirm delete?", "Event: " + item.data.title, [
+                    {
+                      text: "OK",
+                      onPress: () => this.handleDeleteEvent(item.key),
+                    },
+                    {
+                      text: "Cancel",
+                      onPress: () => {},
+                    },
+                  ])
+                }
+              />
             </View>
           )}
         />
