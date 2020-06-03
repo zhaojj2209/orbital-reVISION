@@ -12,28 +12,35 @@ import {
 import firebase from "../firebaseDb";
 
 export default class CalendarScreen extends React.Component {
+  unsubscribe;
   state = { isLoaded: false, events: null };
   componentDidMount() {
     const { route } = this.props;
     const { uid } = route.params;
-    firebase
+    unsubscribe = firebase
       .firestore()
       .collection("users")
       .doc(uid)
       .collection("events")
-      .get()
-      .then((querySnapshot) => {
-        const results = [];
-        querySnapshot.docs.map((documentSnapshot) =>
-          results.push({
-            key: documentSnapshot.id,
-            data: documentSnapshot.data(),
-          })
-        );
-        this.setState({ isLoaded: true, events: results });
-      })
-      .catch((err) => console.error(err));
+      .onSnapshot(
+        (querySnapshot) => {
+          const results = [];
+          querySnapshot.docs.map((documentSnapshot) =>
+            results.push({
+              key: documentSnapshot.id,
+              data: documentSnapshot.data(),
+            })
+          );
+          this.setState({ isLoaded: true, events: results });
+        },
+        (err) => console.error(err)
+      );
   }
+
+  componentWillUnmount() {
+    unsubscribe();
+  }
+
   render() {
     const { route, navigation } = this.props;
     const { username, uid } = route.params;
