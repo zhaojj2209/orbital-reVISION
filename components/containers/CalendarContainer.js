@@ -2,7 +2,8 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import CalendarScreen from "../screens/CalendarScreen";
-import CreateEventPage from "../pages/CreateEventPage";
+import EventFormPage from "../pages/EventFormPage";
+
 const Stack = createStackNavigator();
 
 export default class CalendarContainer extends React.Component {
@@ -16,7 +17,7 @@ export default class CalendarContainer extends React.Component {
           initialParams={route.params}
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="CreateEvent" component={CreateEventPage} />
+        <Stack.Screen name="EventForm" component={EventFormPage} />
       </Stack.Navigator>
     );
   }

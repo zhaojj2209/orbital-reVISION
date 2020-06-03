@@ -11,11 +11,22 @@ import {
 
 import firebase from "../firebaseDb";
 
-export default class CreateEventPage extends React.Component {
+export default class EventFormPage extends React.Component {
   state = {
     title: "",
     description: "",
   };
+
+  componentDidMount() {
+    const { route } = this.props;
+    const { isNewEvent, event } = route.params;
+    if (!isNewEvent) {
+      this.setState({
+        title: event.data.title,
+        description: event.data.description,
+      });
+    }
+  }
 
   handleCreateEvent = (userId, navigation) =>
     firebase
@@ -29,7 +40,29 @@ export default class CreateEventPage extends React.Component {
           title: "",
           description: "",
         });
-        Alert.alert("Task Created", "", [
+        Alert.alert("Event Created", "", [
+          {
+            text: "OK",
+            onPress: () => navigation.navigate("Calendar"),
+          },
+        ]);
+      })
+      .catch((err) => console.error(err));
+
+  handleEditEvent = (userId, eventId, navigation) =>
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .collection("events")
+      .doc(eventId)
+      .set({ title: this.state.title, description: this.state.description })
+      .then(() => {
+        this.setState({
+          title: "",
+          description: "",
+        });
+        Alert.alert("Event Edited Successfully", "", [
           {
             text: "OK",
             onPress: () => navigation.navigate("Calendar"),
@@ -45,7 +78,7 @@ export default class CreateEventPage extends React.Component {
   render() {
     const { title, description } = this.state;
     const { route, navigation } = this.props;
-    const { userId } = route.params;
+    const { userId, isNewEvent, event } = route.params;
 
     return (
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -63,11 +96,15 @@ export default class CreateEventPage extends React.Component {
             value={description}
           />
           <Button
-            title="Create Event"
+            title={isNewEvent ? "Create Event" : "Edit Event"}
             style={styles.button}
             onPress={() => {
               if (title.length) {
-                this.handleCreateEvent(userId, navigation);
+                if (isNewEvent) {
+                  this.handleCreateEvent(userId, navigation);
+                } else {
+                  this.handleEditEvent(userId, event.key, navigation);
+                }
               }
             }}
           />

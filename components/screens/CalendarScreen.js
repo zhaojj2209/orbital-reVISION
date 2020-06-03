@@ -77,6 +77,17 @@ export default class CalendarScreen extends React.Component {
               <Text style={styles.text}>{item.data.title}</Text>
               <Text style={styles.text}>{item.data.description}</Text>
               <Button
+                title="Edit"
+                style={styles.button}
+                onPress={() =>
+                  navigation.navigate("EventForm", {
+                    userId: userId,
+                    isNewEvent: false,
+                    event: item,
+                  })
+                }
+              />
+              <Button
                 title="Delete"
                 style={styles.button}
                 onPress={() =>
@@ -98,7 +109,13 @@ export default class CalendarScreen extends React.Component {
         <Button
           title="Create New Event"
           style={styles.button}
-          onPress={() => navigation.navigate("CreateEvent", { userId: userId })}
+          onPress={() =>
+            navigation.navigate("EventForm", {
+              userId: userId,
+              isNewEvent: true,
+              event: {},
+            })
+          }
         />
         <Button
           title="Logout"
