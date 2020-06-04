@@ -1,6 +1,7 @@
 import React from "react";
 import {
   View,
+  Text,
   TextInput,
   StyleSheet,
   Button,
@@ -15,15 +16,20 @@ export default class EventFormPage extends React.Component {
   state = {
     title: "",
     description: "",
+    startDate: new Date(),
+    endDate: new Date(),
   };
 
   componentDidMount() {
     const { route } = this.props;
     const { isNewEvent, event } = route.params;
     if (!isNewEvent) {
+      const { title, description, startDate, endDate } = event.data;
       this.setState({
-        title: event.data.title,
-        description: event.data.description,
+        title: title,
+        description: description,
+        startDate: startDate.toDate(),
+        endDate: endDate.toDate(),
       });
     }
   }
@@ -34,11 +40,13 @@ export default class EventFormPage extends React.Component {
       .collection("users")
       .doc(userId)
       .collection("events")
-      .add({ title: this.state.title, description: this.state.description })
+      .add(this.state)
       .then(() => {
         this.setState({
           title: "",
           description: "",
+          startDate: new Date(),
+          endDate: new Date(),
         });
         Alert.alert("Event Created", "", [
           {
@@ -56,11 +64,13 @@ export default class EventFormPage extends React.Component {
       .doc(userId)
       .collection("events")
       .doc(eventId)
-      .set({ title: this.state.title, description: this.state.description })
+      .set(this.state)
       .then(() => {
         this.setState({
           title: "",
           description: "",
+          startDate: new Date(),
+          endDate: new Date(),
         });
         Alert.alert("Event Edited Successfully", "", [
           {
@@ -75,8 +85,13 @@ export default class EventFormPage extends React.Component {
 
   handleUpdateDescription = (description) => this.setState({ description });
 
+  handleUpdateStartDate = (date) =>
+    this.setState({ startDate: date, endDate: date });
+
+  handleUpdateEndDate = (date) => this.setState({ endDate: date });
+
   render() {
-    const { title, description } = this.state;
+    const { title, description, startDate, endDate } = this.state;
     const { route, navigation } = this.props;
     const { userId, isNewEvent, event } = route.params;
 
@@ -95,6 +110,26 @@ export default class EventFormPage extends React.Component {
             onChangeText={this.handleUpdateDescription}
             value={description}
           />
+          <Button
+            onPress={() =>
+              navigation.navigate("DatePicker", {
+                initialDate: startDate,
+                handleUpdateDate: this.handleUpdateStartDate,
+              })
+            }
+            title="Start Date:"
+          />
+          <Text>{startDate.toString()}</Text>
+          <Button
+            onPress={() =>
+              navigation.navigate("DatePicker", {
+                initialDate: endDate,
+                handleUpdateDate: this.handleUpdateEndDate,
+              })
+            }
+            title="End Date:"
+          />
+          <Text>{endDate.toString()}</Text>
           <Button
             title={isNewEvent ? "Create Event" : "Edit Event"}
             style={styles.button}
