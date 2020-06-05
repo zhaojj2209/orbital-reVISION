@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -12,13 +12,13 @@ import {
 
 import firebase from "../firebaseDb";
 
-export default class CalendarScreen extends React.Component {
-  unsubscribe;
-  state = { isLoaded: false, events: null };
-  componentDidMount() {
-    const { route } = this.props;
-    const { userId } = route.params;
-    unsubscribe = firebase
+export default function CalendarScreen({ route, navigation }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [events, setEvents] = useState(null);
+  const { username, userId } = route.params;
+
+  useEffect(() => {
+    const unsubscribe = firebase
       .firestore()
       .collection("users")
       .doc(userId)
@@ -26,25 +26,27 @@ export default class CalendarScreen extends React.Component {
       .onSnapshot(
         (querySnapshot) => {
           const results = [];
-          querySnapshot.docs.map((documentSnapshot) =>
+          querySnapshot.docs.map((documentSnapshot) => {
+            const data = documentSnapshot.data();
             results.push({
               key: documentSnapshot.id,
-              data: documentSnapshot.data(),
-            })
-          );
-          this.setState({ isLoaded: true, events: results });
+              data: {
+                title: data.title,
+                description: data.description,
+                startDate: data.startDate.toDate(),
+                endDate: data.endDate.toDate(),
+              },
+            });
+          });
+          setIsLoaded(true);
+          setEvents(results);
         },
         (err) => console.error(err)
       );
-  }
+    return unsubscribe;
+  });
 
-  componentWillUnmount() {
-    unsubscribe();
-  }
-
-  handleDeleteEvent(eventId) {
-    const { route } = this.props;
-    const { userId } = route.params;
+  const handleDeleteEvent = (eventId) => {
     firebase
       .firestore()
       .collection("users")
@@ -60,78 +62,73 @@ export default class CalendarScreen extends React.Component {
           },
         ])
       );
-  }
+  };
 
-  render() {
-    const { route, navigation } = this.props;
-    const { username, userId } = route.params;
-    const { isLoaded, events } = this.state;
-    const welcomeText = "Welcome to the calendar view, " + username + "!";
-    return isLoaded ? (
-      <SafeAreaView style={styles.container}>
-        <Text>{welcomeText}</Text>
-        <FlatList
-          data={events}
-          renderItem={({ item }) => (
-            <View style={styles.event}>
-              <Text style={styles.text}>{item.data.title}</Text>
-              <Text style={styles.text}>{item.data.description}</Text>
-              <Button
-                title="Edit"
-                style={styles.button}
-                onPress={() =>
-                  navigation.navigate("EventForm", {
-                    userId: userId,
-                    isNewEvent: false,
-                    event: item,
-                  })
-                }
-              />
-              <Button
-                title="Delete"
-                style={styles.button}
-                onPress={() =>
-                  Alert.alert("Confirm delete?", "Event: " + item.data.title, [
-                    {
-                      text: "OK",
-                      onPress: () => this.handleDeleteEvent(item.key),
-                    },
-                    {
-                      text: "Cancel",
-                      onPress: () => {},
-                    },
-                  ])
-                }
-              />
-            </View>
-          )}
-        />
-        <Button
-          title="Create New Event"
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate("EventForm", {
-              userId: userId,
-              isNewEvent: true,
-              event: {},
-            })
-          }
-        />
-        <Button
-          title="Logout"
-          style={styles.button}
-          onPress={() =>
-            firebase
-              .auth()
-              .signOut()
-              .then(() => navigation.navigate("Login"))
-          }
-        />
-      </SafeAreaView>
-    ) : (
-      <ActivityIndicator />
-    );
-  }
+  const welcomeText = "Welcome to the calendar view, " + username + "!";
+  return isLoaded ? (
+    <SafeAreaView style={styles.container}>
+      <Text>{welcomeText}</Text>
+      <FlatList
+        data={events}
+        renderItem={({ item }) => (
+          <View style={styles.event}>
+            <Text style={styles.text}>{item.data.title}</Text>
+            <Text style={styles.text}>{item.data.description}</Text>
+            <Button
+              title="Edit"
+              style={styles.button}
+              onPress={() =>
+                navigation.navigate("EventForm", {
+                  userId: userId,
+                  isNewEvent: false,
+                  event: item,
+                })
+              }
+            />
+            <Button
+              title="Delete"
+              style={styles.button}
+              onPress={() =>
+                Alert.alert("Confirm delete?", "Event: " + item.data.title, [
+                  {
+                    text: "OK",
+                    onPress: () => handleDeleteEvent(item.key),
+                  },
+                  {
+                    text: "Cancel",
+                    onPress: () => {},
+                  },
+                ])
+              }
+            />
+          </View>
+        )}
+      />
+      <Button
+        title="Create New Event"
+        style={styles.button}
+        onPress={() =>
+          navigation.navigate("EventForm", {
+            userId: userId,
+            isNewEvent: true,
+            event: {},
+          })
+        }
+      />
+      <Button
+        title="Logout"
+        style={styles.button}
+        onPress={() =>
+          firebase
+            .auth()
+            .signOut()
+            .then(() => navigation.navigate("Login"))
+        }
+      />
+    </SafeAreaView>
+  ) : (
+    <ActivityIndicator />
+  );
 }
 
 const styles = StyleSheet.create({
