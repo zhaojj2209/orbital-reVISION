@@ -8,9 +8,9 @@ const DatePicker = ({ initialDate, onChange, mode }) => (
       testID="dateTimePicker"
       value={initialDate}
       mode={mode}
-      is24Hour={true}
       display="default"
       onChange={onChange}
+      minuteInterval={5}
     />
   </View>
 );

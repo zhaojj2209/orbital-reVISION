@@ -8,9 +8,11 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
+  Platform,
 } from "react-native";
-import DatePicker from "./DatePicker";
+import { format } from "date-fns";
 
+import DatePicker from "./DatePicker";
 import firebase from "../firebaseDb";
 
 export default function EventFormPage({ route, navigation }) {
@@ -92,15 +94,28 @@ export default function EventFormPage({ route, navigation }) {
 
   const handleUpdateDescription = (description) => setDescription(description);
 
+  const closeAllDatePickers = () => {
+    setShowStartDatePicker(false);
+    setShowStartTimePicker(false);
+    setShowEndDatePicker(false);
+    setShowEndTimePicker(false);
+  };
+
   const handleUpdateStartDate = (event, selectedDate) => {
     const currentDate = selectedDate || startDate;
     setStartDate(currentDate);
     setEndDate(currentDate);
+    if (Platform.OS === "android") {
+      closeAllDatePickers();
+    }
   };
 
   const handleUpdateEndDate = (event, selectedDate) => {
     const currentDate = selectedDate || startDate;
     setEndDate(currentDate);
+    if (Platform.OS === "android") {
+      closeAllDatePickers();
+    }
   };
 
   const handleToggleStartDatePicker = () => {
@@ -144,14 +159,17 @@ export default function EventFormPage({ route, navigation }) {
           onChangeText={handleUpdateDescription}
           value={description}
         />
-        <Button
-          onPress={handleToggleStartDatePicker}
-          title={startDate.toLocaleDateString()}
-        />
-        <Button
-          onPress={handleToggleStartTimePicker}
-          title={startDate.toTimeString()}
-        />
+        <View style={styles.dates}>
+          <Text>Start:</Text>
+          <Button
+            onPress={handleToggleStartDatePicker}
+            title={format(startDate, "dd MMM yyyy")}
+          />
+          <Button
+            onPress={handleToggleStartTimePicker}
+            title={format(startDate, "h:mm a")}
+          />
+        </View>
         {showStartDatePicker && (
           <DatePicker
             initialDate={startDate}
@@ -166,15 +184,17 @@ export default function EventFormPage({ route, navigation }) {
             mode="time"
           />
         )}
-
-        <Button
-          onPress={handleToggleEndDatePicker}
-          title={endDate.toLocaleDateString()}
-        />
-        <Button
-          onPress={handleToggleEndTimePicker}
-          title={endDate.toTimeString()}
-        />
+        <View style={styles.dates}>
+          <Text>End:</Text>
+          <Button
+            onPress={handleToggleEndDatePicker}
+            title={format(endDate, "dd MMM yyyy")}
+          />
+          <Button
+            onPress={handleToggleEndTimePicker}
+            title={format(endDate, "h:mm a")}
+          />
+        </View>
         {showEndDatePicker && (
           <DatePicker
             initialDate={endDate}
@@ -191,7 +211,6 @@ export default function EventFormPage({ route, navigation }) {
         )}
         <Button
           title={isNewEvent ? "Create Event" : "Edit Event"}
-          style={styles.button}
           onPress={() => {
             if (title.length) {
               if (isNewEvent) {
@@ -213,8 +232,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  image: {
-    marginBottom: 40,
+  dates: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   textInput: {
     borderWidth: 1,
@@ -224,8 +244,5 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     width: 200,
     height: 40,
-  },
-  button: {
-    marginTop: 42,
   },
 });
