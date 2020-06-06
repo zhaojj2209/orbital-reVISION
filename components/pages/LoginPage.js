@@ -27,11 +27,7 @@ export default class LoginPage extends React.Component {
           .collection("users")
           .doc(res.user.uid)
           .get()
-          .then((doc) => {
-            this.setState({
-              email: "",
-              password: "",
-            });
+          .then((doc) =>
             Alert.alert(
               "Login Successful",
               "Username: " + doc.data().username,
@@ -41,8 +37,8 @@ export default class LoginPage extends React.Component {
                   onPress: () => navigation.navigate("Home"),
                 },
               ]
-            );
-          })
+            )
+          )
       )
       .catch((err) => console.error(err));
 

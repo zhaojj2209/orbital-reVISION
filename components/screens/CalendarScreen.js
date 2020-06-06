@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
-  View,
   SafeAreaView,
   Text,
   Button,
   ActivityIndicator,
   FlatList,
-  Alert,
+  TouchableOpacity,
 } from "react-native";
 
 import firebase from "../firebaseDb";
@@ -46,24 +45,6 @@ export default function CalendarScreen({ route, navigation }) {
     return unsubscribe;
   });
 
-  const handleDeleteEvent = (eventId) => {
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("events")
-      .doc(eventId)
-      .delete()
-      .then(() =>
-        Alert.alert("Event Deleted", "", [
-          {
-            text: "OK",
-            onPress: () => {},
-          },
-        ])
-      );
-  };
-
   const welcomeText = "Welcome to the calendar view, " + username + "!";
   return isLoaded ? (
     <SafeAreaView style={styles.container}>
@@ -71,37 +52,17 @@ export default function CalendarScreen({ route, navigation }) {
       <FlatList
         data={events}
         renderItem={({ item }) => (
-          <View style={styles.event}>
+          <TouchableOpacity
+            style={styles.event}
+            onPress={() =>
+              navigation.navigate("EventDetails", {
+                userId: userId,
+                event: item,
+              })
+            }
+          >
             <Text style={styles.text}>{item.data.title}</Text>
-            <Text style={styles.text}>{item.data.description}</Text>
-            <Button
-              title="Edit"
-              style={styles.button}
-              onPress={() =>
-                navigation.navigate("EventForm", {
-                  userId: userId,
-                  isNewEvent: false,
-                  event: item,
-                })
-              }
-            />
-            <Button
-              title="Delete"
-              style={styles.button}
-              onPress={() =>
-                Alert.alert("Confirm delete?", "Event: " + item.data.title, [
-                  {
-                    text: "OK",
-                    onPress: () => handleDeleteEvent(item.key),
-                  },
-                  {
-                    text: "Cancel",
-                    onPress: () => {},
-                  },
-                ])
-              }
-            />
-          </View>
+          </TouchableOpacity>
         )}
       />
       <Button
@@ -149,8 +110,5 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 20,
     padding: 10,
-  },
-  button: {
-    marginTop: 42,
   },
 });

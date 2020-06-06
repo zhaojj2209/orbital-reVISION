@@ -31,19 +31,14 @@ export default class RegisterPage extends React.Component {
             username: this.state.username,
           })
       )
-      .then(() => {
-        this.setState({
-          username: "",
-          email: "",
-          password: "",
-        });
+      .then(() =>
         Alert.alert("Registration Successful!", "", [
           {
             text: "OK",
             onPress: () => navigation.navigate("Home"),
           },
-        ]);
-      })
+        ])
+      )
       .catch((err) => console.error(err));
 
   handleUpdateUsername = (username) => this.setState({ username });

@@ -49,18 +49,14 @@ export default function EventFormPage({ route, navigation }) {
         startDate: startDate,
         endDate: endDate,
       })
-      .then(() => {
-        setTitle("");
-        setDescription("");
-        setStartDate(new Date());
-        setEndDate(new Date());
+      .then(() =>
         Alert.alert("Event Created", "", [
           {
             text: "OK",
             onPress: () => navigation.navigate("Calendar"),
           },
-        ]);
-      })
+        ])
+      )
       .catch((err) => console.error(err));
 
   const handleEditEvent = () =>
@@ -76,18 +72,14 @@ export default function EventFormPage({ route, navigation }) {
         startDate: startDate,
         endDate: endDate,
       })
-      .then(() => {
-        setTitle("");
-        setDescription("");
-        setStartDate(new Date());
-        setEndDate(new Date());
+      .then(() =>
         Alert.alert("Event Edited Successfully", "", [
           {
             text: "OK",
             onPress: () => navigation.navigate("Calendar"),
           },
-        ]);
-      })
+        ])
+      )
       .catch((err) => console.error(err));
 
   const handleUpdateTitle = (title) => setTitle(title);
