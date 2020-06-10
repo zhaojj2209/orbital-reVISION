@@ -77,6 +77,16 @@ export default function CalendarScreen({ route, navigation }) {
         }
       />
       <Button
+        title="Categories"
+        style={styles.button}
+        onPress={() =>
+          navigation.navigate("CategoryList", {
+            username: username,
+            userId: userId,
+          })
+        }
+      />
+      <Button
         title="Logout"
         style={styles.button}
         onPress={() =>
