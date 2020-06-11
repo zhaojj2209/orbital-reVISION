@@ -10,7 +10,8 @@ import {
   Alert,
 } from "react-native";
 
-import firebase from "../firebaseDb";
+import Colours from "../Colours";
+import firebase from "../FirebaseDb";
 
 export default function CategoryList({ route, navigation }) {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -69,7 +70,12 @@ export default function CategoryList({ route, navigation }) {
       <FlatList
         data={categories}
         renderItem={({ item }) => (
-          <View style={styles.category}>
+          <View
+            style={StyleSheet.flatten([
+              styles.category,
+              { backgroundColor: item.data.colour },
+            ])}
+          >
             <Text style={styles.text}>{item.data.title}</Text>
             <Button
               title="Edit"
@@ -128,6 +134,7 @@ const styles = StyleSheet.create({
   },
   category: {
     flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#f9c2ff",
     padding: 20,
     marginVertical: 8,

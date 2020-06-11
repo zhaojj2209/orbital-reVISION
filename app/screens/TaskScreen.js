@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View, Text, Button } from "react-native";
 
-import firebase from "../firebaseDb";
+import firebase from "../FirebaseDb";
 
 export default class TaskScreen extends React.Component {
   render() {

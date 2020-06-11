@@ -20,6 +20,5 @@ export default DatePicker;
 const styles = StyleSheet.create({
   container: {
     width: 1000,
-    backgroundColor: "#f9c2ff",
   },
 });

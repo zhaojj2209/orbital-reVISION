@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import CalendarContainer from "../containers/CalendarContainer";
 import TaskScreen from "../screens/TaskScreen";
-import firebase from "../firebaseDb";
+import firebase from "../FirebaseDb";
 
 const Tab = createBottomTabNavigator();
 

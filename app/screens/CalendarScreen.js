@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 
-import firebase from "../firebaseDb";
+import firebase from "../FirebaseDb";
 
 export default function CalendarScreen({ route, navigation }) {
   const [isLoaded, setIsLoaded] = useState(false);

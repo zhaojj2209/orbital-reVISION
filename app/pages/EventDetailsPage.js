@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { format } from "date-fns";
 
-import firebase from "../firebaseDb";
+import firebase from "../FirebaseDb";
 
 export default function EventDetailsPage({ route, navigation }) {
   const { userId, event } = route.params;

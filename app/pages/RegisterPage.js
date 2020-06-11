@@ -9,50 +9,57 @@ import {
   Alert,
 } from "react-native";
 
-import firebase from "../firebaseDb";
+import firebase from "../FirebaseDb";
 
-export default class LoginPage extends React.Component {
+export default class RegisterPage extends React.Component {
   state = {
+    username: "",
     email: "",
     password: "",
   };
 
-  handleLookupUser = (email, password, navigation) =>
+  handleCreateUser = (navigation) =>
     firebase
       .auth()
-      .signInWithEmailAndPassword(email, password)
-      .then((res) =>
+      .createUserWithEmailAndPassword(this.state.email, this.state.password)
+      .then(() =>
         firebase
           .firestore()
           .collection("users")
-          .doc(res.user.uid)
-          .get()
-          .then((doc) =>
-            Alert.alert(
-              "Login Successful",
-              "Username: " + doc.data().username,
-              [
-                {
-                  text: "OK",
-                  onPress: () => navigation.navigate("Home"),
-                },
-              ]
-            )
-          )
+          .doc(firebase.auth().currentUser.uid)
+          .set({
+            username: this.state.username,
+          })
+      )
+      .then(() =>
+        Alert.alert("Registration Successful!", "", [
+          {
+            text: "OK",
+            onPress: () => navigation.navigate("Home"),
+          },
+        ])
       )
       .catch((err) => console.error(err));
+
+  handleUpdateUsername = (username) => this.setState({ username });
 
   handleUpdateEmail = (email) => this.setState({ email });
 
   handleUpdatePassword = (password) => this.setState({ password });
 
   render() {
-    const { email, password } = this.state;
+    const { username, email, password } = this.state;
     const { navigation } = this.props;
 
     return (
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         <View style={styles.container}>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Username"
+            onChangeText={this.handleUpdateUsername}
+            value={username}
+          />
           <TextInput
             style={styles.textInput}
             placeholder="Email"
@@ -66,18 +73,13 @@ export default class LoginPage extends React.Component {
             value={password}
           />
           <Button
-            title="Login"
-            style={styles.button}
-            onPress={() => {
-              if (email.length && password.length) {
-                this.handleLookupUser(email, password, navigation);
-              }
-            }}
-          />
-          <Button
             title="Register"
             style={styles.button}
-            onPress={() => navigation.navigate("Register")}
+            onPress={() => {
+              if (username.length && email.length && password.length) {
+                this.handleCreateUser(navigation);
+              }
+            }}
           />
         </View>
       </TouchableWithoutFeedback>

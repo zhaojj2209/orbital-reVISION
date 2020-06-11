@@ -12,8 +12,8 @@ import {
 } from "react-native";
 import { format } from "date-fns";
 
-import DatePicker from "./DatePicker";
-import firebase from "../firebaseDb";
+import DatePicker from "../components/DatePicker";
+import firebase from "../FirebaseDb";
 
 export default function EventFormPage({ route, navigation }) {
   const [title, setTitle] = useState("");

@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
+  Text,
   TextInput,
   StyleSheet,
   Button,
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
+  Picker,
+  Platform,
 } from "react-native";
 
-import firebase from "../firebaseDb";
+import Colours from "../Colours";
+import firebase from "../FirebaseDb";
 
 export default function CategoryFormPage({ route, navigation }) {
   const [title, setTitle] = useState("");
-  const [colour, setColour] = useState("f9c2ff");
+  const [colour, setColour] = useState(Colours.one);
+  const [showPicker, setShowPicker] = useState(Platform.OS === "android");
 
   const { userId, isNewCategory, category } = route.params;
 
@@ -68,7 +73,7 @@ export default function CategoryFormPage({ route, navigation }) {
 
   const handleUpdateTitle = (title) => setTitle(title);
 
-  const handleUpdateColour = (colour) => setColour(colour);
+  const handleTogglePicker = () => setShowPicker(!showPicker);
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -79,12 +84,32 @@ export default function CategoryFormPage({ route, navigation }) {
           onChangeText={handleUpdateTitle}
           value={title}
         />
-        <TextInput
-          style={styles.textInput}
-          placeholder="Colour"
-          onChangeText={handleUpdateColour}
-          value={colour}
-        />
+        <View style={styles.colour}>
+          <Text>Colour:</Text>
+          {Platform.OS === "ios" ? (
+            <Button onPress={handleTogglePicker} title={colour} />
+          ) : (
+            <Text>{colour}</Text>
+          )}
+        </View>
+        {showPicker && (
+          <Picker
+            selectedValue={colour}
+            style={{ width: 150 }}
+            onValueChange={(itemValue, itemIndex) => setColour(itemValue)}
+          >
+            <Picker.Item label="One" value={Colours.one} />
+            <Picker.Item label="Two" value={Colours.two} />
+            <Picker.Item label="Three" value={Colours.three} />
+            <Picker.Item label="Four" value={Colours.four} />
+            <Picker.Item label="Five" value={Colours.five} />
+            <Picker.Item label="Six" value={Colours.six} />
+            <Picker.Item label="Seven" value={Colours.seven} />
+            <Picker.Item label="Eight" value={Colours.eight} />
+            <Picker.Item label="Nine" value={Colours.nine} />
+            <Picker.Item label="Ten" value={Colours.ten} />
+          </Picker>
+        )}
         <Button
           title={isNewCategory ? "Create Category" : "Edit Category"}
           onPress={() => {
@@ -106,6 +131,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
+    alignItems: "center",
+  },
+  colour: {
+    flexDirection: "row",
     alignItems: "center",
   },
   textInput: {
