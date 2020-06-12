@@ -9,6 +9,7 @@ import {
   Keyboard,
   Alert,
   Platform,
+  Picker,
 } from "react-native";
 import { format } from "date-fns";
 
@@ -20,20 +21,28 @@ export default function EventFormPage({ route, navigation }) {
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+  const [categoryId, setCategoryId] = useState("");
+  const [categoryName, setCategoryName] = useState("None");
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
-  const { userId, isNewEvent, event } = route.params;
+  const { userId, isNewEvent, event, categories } = route.params;
 
   useEffect(() => {
     if (!isNewEvent) {
-      const { title, description, startDate, endDate } = event.data;
+      const { title, description, startDate, endDate, category } = event.data;
       setTitle(title);
       setDescription(description);
       setStartDate(startDate);
       setEndDate(endDate);
+      if (category.length > 0) {
+        setCategoryId(category);
+        const filtered = categories.filter((cat) => cat.key == category);
+        setCategoryName(filtered[0].data.title);
+      }
     }
   }, [event]);
 
@@ -48,6 +57,7 @@ export default function EventFormPage({ route, navigation }) {
         description: description,
         startDate: startDate,
         endDate: endDate,
+        category: categoryId,
       })
       .then(() =>
         Alert.alert("Event Created", "", [
@@ -71,6 +81,7 @@ export default function EventFormPage({ route, navigation }) {
         description: description,
         startDate: startDate,
         endDate: endDate,
+        category: categoryId,
       })
       .then(() =>
         Alert.alert("Event Edited Successfully", "", [
@@ -136,6 +147,9 @@ export default function EventFormPage({ route, navigation }) {
     setShowEndTimePicker(!showEndTimePicker);
   };
 
+  const handleToggleCategoryPicker = () =>
+    setShowCategoryPicker(!showCategoryPicker);
+
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
@@ -200,6 +214,31 @@ export default function EventFormPage({ route, navigation }) {
             onChange={handleUpdateEndDate}
             mode="time"
           />
+        )}
+        <View style={styles.dates}>
+          <Text>Category:</Text>
+          {Platform.OS === "ios" ? (
+            <Button onPress={handleToggleCategoryPicker} title={categoryName} />
+          ) : (
+            <Text>{categoryName}</Text>
+          )}
+        </View>
+        {showCategoryPicker && (
+          <Picker
+            selectedValue={categoryId}
+            style={{ width: 150 }}
+            onValueChange={(itemValue, itemIndex) => {
+              setCategoryId(itemValue);
+              setCategoryName(
+                itemIndex == 0 ? "None" : categories[itemIndex - 1].data.title
+              );
+            }}
+          >
+            <Picker.Item label="None" value="" />
+            {categories.map((cat) => (
+              <Picker.Item label={cat.data.title} value={cat.key} />
+            ))}
+          </Picker>
         )}
         <Button
           title={isNewEvent ? "Create Event" : "Edit Event"}

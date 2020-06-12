@@ -12,8 +12,10 @@ import {
 import firebase from "../FirebaseDb";
 
 export default function CalendarScreen({ route, navigation }) {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [events, setEvents] = useState(null);
+  const [eventsLoaded, setEventsLoaded] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+  const [categories, setCategories] = useState([]);
   const { username, userId } = route.params;
 
   useEffect(() => {
@@ -34,10 +36,11 @@ export default function CalendarScreen({ route, navigation }) {
                 description: data.description,
                 startDate: data.startDate.toDate(),
                 endDate: data.endDate.toDate(),
+                category: data.category,
               },
             });
           });
-          setIsLoaded(true);
+          setEventsLoaded(true);
           setEvents(results);
         },
         (err) => console.error(err)
@@ -45,19 +48,57 @@ export default function CalendarScreen({ route, navigation }) {
     return unsubscribe;
   });
 
+  useEffect(() => {
+    const unsubscribe = firebase
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .collection("categories")
+      .onSnapshot(
+        (querySnapshot) => {
+          const results = [];
+          querySnapshot.docs.map((documentSnapshot) => {
+            const data = documentSnapshot.data();
+            results.push({
+              key: documentSnapshot.id,
+              data: {
+                title: data.title,
+                colour: data.colour,
+              },
+            });
+          });
+          setCategoriesLoaded(true);
+          setCategories(results);
+        },
+        (err) => console.error(err)
+      );
+    return unsubscribe;
+  });
+
+  const getCategoryColour = (categoryId) => {
+    const filtered = categories.filter((cat) => cat.key == categoryId);
+    return {
+      backgroundColor: filtered.length ? filtered[0].data.colour : "#f9c2ff",
+    };
+  };
+
   const welcomeText = "Welcome to the calendar view, " + username + "!";
-  return isLoaded ? (
+  return eventsLoaded && categoriesLoaded ? (
     <SafeAreaView style={styles.container}>
       <Text>{welcomeText}</Text>
       <FlatList
         data={events}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.event}
+            style={StyleSheet.flatten([
+              styles.event,
+              getCategoryColour(item.data.category),
+            ])}
             onPress={() =>
               navigation.navigate("EventDetails", {
                 userId: userId,
                 event: item,
+                categories: categories,
               })
             }
           >
@@ -73,6 +114,7 @@ export default function CalendarScreen({ route, navigation }) {
             userId: userId,
             isNewEvent: true,
             event: {},
+            categories: categories,
           })
         }
       />

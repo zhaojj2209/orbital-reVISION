@@ -12,8 +12,8 @@ import { format } from "date-fns";
 import firebase from "../FirebaseDb";
 
 export default function EventDetailsPage({ route, navigation }) {
-  const { userId, event } = route.params;
-  const { title, description, startDate, endDate } = event.data;
+  const { userId, event, categories } = route.params;
+  const { title, description, startDate, endDate, category } = event.data;
 
   const handleDeleteEvent = () => {
     firebase
@@ -34,12 +34,17 @@ export default function EventDetailsPage({ route, navigation }) {
   };
 
   const startDateString =
-    "Start:" +
+    "Start: " +
     format(startDate, "dd MMM yyyy") +
     ", " +
     format(startDate, "h:mm a");
   const endDateString =
-    "End:" + format(endDate, "dd MMM yyyy") + ", " + format(endDate, "h:mm a");
+    "End: " + format(endDate, "dd MMM yyyy") + ", " + format(endDate, "h:mm a");
+
+  const categoryString = () => {
+    const filtered = categories.filter((cat) => cat.key == category);
+    return "Category: " + (filtered.length ? filtered[0].data.title : "None");
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -48,6 +53,7 @@ export default function EventDetailsPage({ route, navigation }) {
         <Text style={styles.text}>{description}</Text>
         <Text style={styles.text}>{startDateString}</Text>
         <Text style={styles.text}>{endDateString}</Text>
+        <Text style={styles.text}>{categoryString()}</Text>
         <Button
           title="Edit"
           onPress={() =>
@@ -55,6 +61,7 @@ export default function EventDetailsPage({ route, navigation }) {
               userId: userId,
               isNewEvent: false,
               event: event,
+              categories: categories,
             })
           }
         />
