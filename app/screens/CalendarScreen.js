@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
+  View,
   SafeAreaView,
   Text,
   Button,
   ActivityIndicator,
-  FlatList,
   TouchableOpacity,
 } from "react-native";
+import { Agenda } from "react-native-calendars";
 
 import firebase from "../FirebaseDb";
 
@@ -16,6 +17,7 @@ export default function CalendarScreen({ route, navigation }) {
   const [events, setEvents] = useState([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [agendaItems, setAgendaItems] = useState({});
   const { username, userId } = route.params;
 
   useEffect(() => {
@@ -82,62 +84,108 @@ export default function CalendarScreen({ route, navigation }) {
     };
   };
 
-  const welcomeText = "Welcome to the calendar view, " + username + "!";
+  const timeToString = (time) => {
+    const date = new Date(time);
+    return date.toISOString().split("T")[0];
+  };
+
+  const loadItems = (day) => {
+    setTimeout(() => {
+      for (let i = -15; i <= 15; i++) {
+        const time = day.timestamp + i * 24 * 60 * 60 * 1000;
+        const strTime = timeToString(time);
+        if (!agendaItems[strTime]) {
+          agendaItems[strTime] = [];
+          const filtered = events.filter((item) => {
+            return item.data.startDate.toISOString().split("T")[0] == strTime;
+          });
+          for (let j = 0; j < filtered.length; j++) {
+            agendaItems[strTime].push(filtered[j]);
+          }
+        }
+      }
+      const newItems = {};
+      Object.keys(agendaItems).forEach((key) => {
+        newItems[key] = agendaItems[key];
+      });
+      setAgendaItems(newItems);
+    }, 1000);
+  };
+
   return eventsLoaded && categoriesLoaded ? (
     <SafeAreaView style={styles.container}>
-      <Text>{welcomeText}</Text>
-      <FlatList
-        data={events}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={StyleSheet.flatten([
-              styles.event,
-              getCategoryColour(item.data.category),
-            ])}
-            onPress={() =>
-              navigation.navigate("EventDetails", {
-                userId: userId,
-                event: item,
-                categories: categories,
-              })
-            }
-          >
-            <Text style={styles.text}>{item.data.title}</Text>
-          </TouchableOpacity>
-        )}
+      <Agenda
+        items={agendaItems}
+        loadItemsForMonth={loadItems}
+        onDayChange={loadItems}
+        selected={new Date().toISOString().split("T")[0]}
+        pastScrollRange={6}
+        futureScrollRange={6}
+        renderItem={(item) => {
+          return (
+            <TouchableOpacity
+              style={StyleSheet.flatten([
+                styles.event,
+                getCategoryColour(item.data.category),
+              ])}
+              onPress={() =>
+                navigation.navigate("EventDetails", {
+                  userId: userId,
+                  event: item,
+                  categories: categories,
+                })
+              }
+            >
+              <Text style={styles.text}>{item.data.title}</Text>
+            </TouchableOpacity>
+          );
+        }}
+        renderEmptyDate={() => {
+          return (
+            <View style={styles.emptyDate}>
+              <Text style={styles.text}>Nothing scheduled!</Text>
+            </View>
+          );
+        }}
+        rowHasChanged={(r1, r2) => {
+          return r1.key !== r2.key;
+        }}
+        style={{ flex: 1 }}
       />
-      <Button
-        title="Create New Event"
-        style={styles.button}
-        onPress={() =>
-          navigation.navigate("EventForm", {
-            userId: userId,
-            isNewEvent: true,
-            event: {},
-            categories: categories,
-          })
-        }
-      />
-      <Button
-        title="Categories"
-        style={styles.button}
-        onPress={() =>
-          navigation.navigate("CategoryList", {
-            username: username,
-            userId: userId,
-          })
-        }
-      />
-      <Button
-        title="Logout"
-        style={styles.button}
-        onPress={() =>
-          firebase
-            .auth()
-            .signOut()
-            .then(() => navigation.navigate("Login"))
-        }
-      />
+      <View style={styles.bottom}>
+        <Button
+          title="Create New Event"
+          style={styles.button}
+          onPress={() =>
+            navigation.navigate("EventForm", {
+              userId: userId,
+              isNewEvent: true,
+              event: {},
+              categories: categories,
+            })
+          }
+        />
+        <Button
+          title="Categories"
+          style={styles.button}
+          onPress={() =>
+            navigation.navigate("CategoryList", {
+              username: username,
+              userId: userId,
+            })
+          }
+        />
+        <Button
+          title="Logout"
+          style={styles.button}
+          onPress={() =>
+            firebase
+              .auth()
+              .signOut()
+              .then(() => navigation.navigate("Login"))
+          }
+        />
+      </View>
     </SafeAreaView>
   ) : (
     <ActivityIndicator />
@@ -149,18 +197,26 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
     backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "space-around",
   },
   event: {
-    flexDirection: "row",
+    //flexDirection: "row",
     backgroundColor: "#f9c2ff",
     padding: 20,
     marginVertical: 8,
-    marginHorizontal: 16,
+    // marginHorizontal: 16,
   },
   text: {
     fontSize: 20,
     padding: 10,
+  },
+  bottom: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyDate: {
+    height: 15,
+    flex: 1,
+    paddingTop: 30,
   },
 });
