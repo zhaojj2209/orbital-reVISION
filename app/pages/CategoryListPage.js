@@ -15,7 +15,7 @@ import firebase from "../FirebaseDb";
 export default function CategoryList({ route, navigation }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [categories, setCategories] = useState(null);
-  const { username, userId } = route.params;
+  const { userId } = route.params;
 
   useEffect(() => {
     const unsubscribe = firebase
@@ -62,10 +62,8 @@ export default function CategoryList({ route, navigation }) {
       );
   };
 
-  const welcomeText = "Welcome to the category list, " + username + "!";
   return isLoaded ? (
     <SafeAreaView style={styles.container}>
-      <Text>{welcomeText}</Text>
       <FlatList
         data={categories}
         renderItem={({ item }) => (

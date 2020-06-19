@@ -11,23 +11,14 @@ const Tab = createBottomTabNavigator();
 export default class HomeContainer extends React.Component {
   state = {
     userId: "",
-    username: "",
     isLoaded: false,
   };
   componentDidMount() {
     const user = firebase.auth().currentUser;
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(user.uid)
-      .get()
-      .then((doc) =>
-        this.setState({
-          userId: user.uid,
-          username: doc.data().username,
-          isLoaded: true,
-        })
-      );
+    this.setState({
+      userId: user.uid,
+      isLoaded: true,
+    });
   }
   render() {
     return this.state.isLoaded ? (
@@ -37,7 +28,6 @@ export default class HomeContainer extends React.Component {
           component={CalendarContainer}
           initialParams={{
             userId: this.state.userId,
-            username: this.state.username,
           }}
         />
         <Tab.Screen
@@ -45,7 +35,6 @@ export default class HomeContainer extends React.Component {
           component={TaskScreen}
           initialParams={{
             userId: this.state.userId,
-            username: this.state.username,
           }}
         />
       </Tab.Navigator>

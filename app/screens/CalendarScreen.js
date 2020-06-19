@@ -19,7 +19,7 @@ export default function CalendarScreen({ route, navigation }) {
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [categories, setCategories] = useState([]);
   const [agendaItems, setAgendaItems] = useState({});
-  const { username, userId } = route.params;
+  const { userId } = route.params;
 
   useEffect(() => {
     const unsubscribe = firebase
@@ -177,7 +177,6 @@ export default function CalendarScreen({ route, navigation }) {
           style={styles.button}
           onPress={() =>
             navigation.navigate("CategoryList", {
-              username: username,
               userId: userId,
             })
           }
@@ -206,11 +205,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   event: {
-    //flexDirection: "row",
     backgroundColor: "#f9c2ff",
     padding: 20,
     marginVertical: 8,
-    // marginHorizontal: 16,
   },
   text: {
     fontSize: 20,
