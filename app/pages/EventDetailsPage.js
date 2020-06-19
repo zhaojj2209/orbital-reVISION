@@ -7,9 +7,9 @@ import {
   Button,
   Alert,
 } from "react-native";
-import { format } from "date-fns";
 
 import firebase from "../FirebaseDb";
+import { formatDate, formatTime } from "../constants/DateFormats";
 
 export default function EventDetailsPage({ route, navigation }) {
   const { userId, event, categories } = route.params;
@@ -34,12 +34,9 @@ export default function EventDetailsPage({ route, navigation }) {
   };
 
   const startDateString =
-    "Start: " +
-    format(startDate, "dd MMM yyyy") +
-    ", " +
-    format(startDate, "h:mm a");
+    "Start: " + formatDate(startDate) + "    " + formatTime(startDate);
   const endDateString =
-    "End: " + format(endDate, "dd MMM yyyy") + ", " + format(endDate, "h:mm a");
+    "End: " + formatDate(endDate) + "    " + formatTime(endDate);
 
   const categoryString = () => {
     const filtered = categories.filter((cat) => cat.key == category);
@@ -50,7 +47,9 @@ export default function EventDetailsPage({ route, navigation }) {
     <SafeAreaView style={styles.container}>
       <View>
         <Text style={styles.text}>{title}</Text>
-        <Text style={styles.text}>{description}</Text>
+        <Text style={styles.text}>
+          {description.length ? description : "No description"}
+        </Text>
         <Text style={styles.text}>{startDateString}</Text>
         <Text style={styles.text}>{endDateString}</Text>
         <Text style={styles.text}>{categoryString()}</Text>

@@ -10,7 +10,6 @@ import {
   Alert,
 } from "react-native";
 
-import Colours from "../Colours";
 import firebase from "../FirebaseDb";
 
 export default function CategoryList({ route, navigation }) {

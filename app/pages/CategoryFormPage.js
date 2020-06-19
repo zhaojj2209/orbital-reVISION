@@ -12,7 +12,7 @@ import {
   Platform,
 } from "react-native";
 
-import Colours from "../Colours";
+import Colours from "../constants/Colours";
 import firebase from "../FirebaseDb";
 
 export default function CategoryFormPage({ route, navigation }) {

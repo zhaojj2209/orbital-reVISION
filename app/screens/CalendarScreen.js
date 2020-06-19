@@ -11,6 +11,7 @@ import {
 import { Agenda } from "react-native-calendars";
 
 import firebase from "../FirebaseDb";
+import { formatTime } from "../constants/DateFormats";
 
 export default function CalendarScreen({ route, navigation }) {
   const [eventsLoaded, setEventsLoaded] = useState(false);
@@ -26,6 +27,7 @@ export default function CalendarScreen({ route, navigation }) {
       .collection("users")
       .doc(userId)
       .collection("events")
+      .orderBy("startDate")
       .onSnapshot(
         (querySnapshot) => {
           const results = [];
@@ -137,6 +139,11 @@ export default function CalendarScreen({ route, navigation }) {
               }
             >
               <Text style={styles.text}>{item.data.title}</Text>
+              <Text style={styles.text}>
+                {formatTime(item.data.startDate) +
+                  " - " +
+                  formatTime(item.data.endDate)}
+              </Text>
             </TouchableOpacity>
           );
         }}

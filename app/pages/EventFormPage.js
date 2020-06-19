@@ -11,16 +11,20 @@ import {
   Platform,
   Picker,
 } from "react-native";
-import { format } from "date-fns";
 
 import DatePicker from "../components/DatePicker";
 import firebase from "../FirebaseDb";
+import {
+  formatDate,
+  formatTime,
+  newRoundedDate,
+} from "../constants/DateFormats";
 
 export default function EventFormPage({ route, navigation }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(newRoundedDate());
+  const [endDate, setEndDate] = useState(newRoundedDate());
   const [categoryId, setCategoryId] = useState("");
   const [categoryName, setCategoryName] = useState("None");
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -97,12 +101,22 @@ export default function EventFormPage({ route, navigation }) {
 
   const handleUpdateDescription = (description) => setDescription(description);
 
-  const closeAllDatePickers = () => {
-    setShowStartDatePicker(false);
-    setShowStartTimePicker(false);
-    setShowEndDatePicker(false);
-    setShowEndTimePicker(false);
+  const togglePickers = (
+    showStartDate,
+    showStartTime,
+    showEndDate,
+    showEndTime,
+    showCategory
+  ) => {
+    setShowStartDatePicker(showStartDate);
+    setShowStartTimePicker(showStartTime);
+    setShowEndDatePicker(showEndDate);
+    setShowEndTimePicker(showEndTime);
+    setShowCategoryPicker(showCategory);
   };
+
+  const closeAllDatePickers = () =>
+    togglePickers(false, false, false, false, false);
 
   const handleUpdateStartDate = (event, selectedDate) => {
     const currentDate = selectedDate || startDate;
@@ -121,34 +135,20 @@ export default function EventFormPage({ route, navigation }) {
     }
   };
 
-  const handleToggleStartDatePicker = () => {
-    setShowStartDatePicker(!showStartDatePicker);
-    setShowStartTimePicker(false);
-    setShowEndDatePicker(false);
-    setShowEndTimePicker(false);
-  };
+  const handleToggleStartDatePicker = () =>
+    togglePickers(!showStartDatePicker, false, false, false, false);
 
-  const handleToggleStartTimePicker = () => {
-    setShowStartDatePicker(false);
-    setShowStartTimePicker(!showStartTimePicker);
-    setShowEndDatePicker(false);
-    setShowEndTimePicker(false);
-  };
-  const handleToggleEndDatePicker = () => {
-    setShowStartDatePicker(false);
-    setShowStartTimePicker(false);
-    setShowEndDatePicker(!showEndDatePicker);
-    setShowEndTimePicker(false);
-  };
-  const handleToggleEndTimePicker = () => {
-    setShowStartDatePicker(false);
-    setShowStartTimePicker(false);
-    setShowEndDatePicker(false);
-    setShowEndTimePicker(!showEndTimePicker);
-  };
+  const handleToggleStartTimePicker = () =>
+    togglePickers(false, !showStartTimePicker, false, false, false);
+
+  const handleToggleEndDatePicker = () =>
+    togglePickers(false, false, !showEndDatePicker, false, false);
+
+  const handleToggleEndTimePicker = () =>
+    togglePickers(false, false, false, !showEndTimePicker, false);
 
   const handleToggleCategoryPicker = () =>
-    setShowCategoryPicker(!showCategoryPicker);
+    togglePickers(false, false, false, false, !showCategoryPicker);
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -169,11 +169,11 @@ export default function EventFormPage({ route, navigation }) {
           <Text>Start:</Text>
           <Button
             onPress={handleToggleStartDatePicker}
-            title={format(startDate, "dd MMM yyyy")}
+            title={formatDate(startDate)}
           />
           <Button
             onPress={handleToggleStartTimePicker}
-            title={format(startDate, "h:mm a")}
+            title={formatTime(startDate)}
           />
         </View>
         {showStartDatePicker && (
@@ -194,11 +194,11 @@ export default function EventFormPage({ route, navigation }) {
           <Text>End:</Text>
           <Button
             onPress={handleToggleEndDatePicker}
-            title={format(endDate, "dd MMM yyyy")}
+            title={formatDate(endDate)}
           />
           <Button
             onPress={handleToggleEndTimePicker}
-            title={format(endDate, "h:mm a")}
+            title={formatTime(endDate)}
           />
         </View>
         {showEndDatePicker && (
