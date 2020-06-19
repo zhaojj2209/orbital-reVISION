@@ -9,22 +9,20 @@ import HomeContainer from "./HomeContainer";
 
 const Stack = createStackNavigator();
 
-export default class LoginContainer extends React.Component {
-  render() {
-    return (
-      <NavigationContainer style={styles.container}>
-        <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen name="Login" component={LoginPage} />
-          <Stack.Screen name="Register" component={RegisterPage} />
-          <Stack.Screen
-            name="Home"
-            component={HomeContainer}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    );
-  }
+export default function LoginContainer() {
+  return (
+    <NavigationContainer style={styles.container}>
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen name="Login" component={LoginPage} />
+        <Stack.Screen name="Register" component={RegisterPage} />
+        <Stack.Screen
+          name="Home"
+          component={HomeContainer}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 }
 
 const styles = StyleSheet.create({

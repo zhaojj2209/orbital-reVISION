@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   TextInput,
@@ -11,24 +11,42 @@ import {
 
 import firebase from "../FirebaseDb";
 
-export default class RegisterPage extends React.Component {
-  state = {
-    username: "",
-    email: "",
-    password: "",
+export default function RegisterPage({ navigation }) {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const validateRegistrationInput = () => {
+    if (username.length == 0) {
+      Alert.alert("Please enter valid username!", "Username cannot be blank", [
+        { text: "OK", onPress: () => {} },
+      ]);
+    } else if (email.length < 10 || email.search("@") == -1) {
+      Alert.alert("Please enter valid email!", "", [
+        { text: "OK", onPress: () => {} },
+      ]);
+    } else if (password.length < 6) {
+      Alert.alert(
+        "Please enter valid password!",
+        "Password must be at least 6 characters long",
+        [{ text: "OK", onPress: () => {} }]
+      );
+    } else {
+      handleCreateUser();
+    }
   };
 
-  handleCreateUser = (navigation) =>
+  const handleCreateUser = () =>
     firebase
       .auth()
-      .createUserWithEmailAndPassword(this.state.email, this.state.password)
+      .createUserWithEmailAndPassword(email, password)
       .then(() =>
         firebase
           .firestore()
           .collection("users")
           .doc(firebase.auth().currentUser.uid)
           .set({
-            username: this.state.username,
+            username: username,
           })
       )
       .then(() =>
@@ -41,50 +59,41 @@ export default class RegisterPage extends React.Component {
       )
       .catch((err) => console.error(err));
 
-  handleUpdateUsername = (username) => this.setState({ username });
+  const handleUpdateUsername = (username) => setUsername(username);
 
-  handleUpdateEmail = (email) => this.setState({ email });
+  const handleUpdateEmail = (email) => setEmail(email);
 
-  handleUpdatePassword = (password) => this.setState({ password });
+  const handleUpdatePassword = (password) => setPassword(password);
 
-  render() {
-    const { username, email, password } = this.state;
-    const { navigation } = this.props;
-
-    return (
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <View style={styles.container}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Username"
-            onChangeText={this.handleUpdateUsername}
-            value={username}
-          />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Email"
-            onChangeText={this.handleUpdateEmail}
-            value={email}
-          />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Password"
-            onChangeText={this.handleUpdatePassword}
-            value={password}
-          />
-          <Button
-            title="Register"
-            style={styles.button}
-            onPress={() => {
-              if (username.length && email.length && password.length) {
-                this.handleCreateUser(navigation);
-              }
-            }}
-          />
-        </View>
-      </TouchableWithoutFeedback>
-    );
-  }
+  return (
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <View style={styles.container}>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Username"
+          onChangeText={handleUpdateUsername}
+          value={username}
+        />
+        <TextInput
+          style={styles.textInput}
+          placeholder="Email"
+          onChangeText={handleUpdateEmail}
+          value={email}
+        />
+        <TextInput
+          style={styles.textInput}
+          placeholder="Password"
+          onChangeText={handleUpdatePassword}
+          value={password}
+        />
+        <Button
+          title="Register"
+          style={styles.button}
+          onPress={validateRegistrationInput}
+        />
+      </View>
+    </TouchableWithoutFeedback>
+  );
 }
 
 const styles = StyleSheet.create({

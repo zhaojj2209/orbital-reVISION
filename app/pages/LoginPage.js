@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   TextInput,
@@ -11,78 +11,72 @@ import {
 
 import firebase from "../FirebaseDb";
 
-export default class LoginPage extends React.Component {
-  state = {
-    email: "",
-    password: "",
+export default function LoginPage({ navigation }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const validateLoginInput = () => {
+    console.log(email.search("@"));
+    console.log(email.search("."));
+    if (email.length < 10 || email.search("@") == -1) {
+      Alert.alert("Email incorrect!", "", [{ text: "OK", onPress: () => {} }]);
+    } else if (password.length < 6) {
+      Alert.alert("Password incorrect!", "", [
+        { text: "OK", onPress: () => {} },
+      ]);
+    } else {
+      handleLookupUser();
+    }
   };
 
-  handleLookupUser = (email, password, navigation) =>
+  const handleLookupUser = () =>
     firebase
       .auth()
       .signInWithEmailAndPassword(email, password)
       .then((res) =>
-        firebase
-          .firestore()
-          .collection("users")
-          .doc(res.user.uid)
-          .get()
-          .then((doc) =>
-            Alert.alert(
-              "Login Successful",
-              "Username: " + doc.data().username,
-              [
-                {
-                  text: "OK",
-                  onPress: () => navigation.navigate("Home"),
-                },
-              ]
-            )
-          )
+        Alert.alert("Login Successful", "", [
+          {
+            text: "OK",
+            onPress: () => navigation.navigate("Home"),
+          },
+        ])
       )
-      .catch((err) => console.error(err));
+      .catch((err) =>
+        Alert.alert(err.message, "", [{ text: "OK", onPress: () => {} }])
+      );
 
-  handleUpdateEmail = (email) => this.setState({ email });
+  const handleUpdateEmail = (email) => setEmail(email);
 
-  handleUpdatePassword = (password) => this.setState({ password });
+  const handleUpdatePassword = (password) => setPassword(password);
 
-  render() {
-    const { email, password } = this.state;
-    const { navigation } = this.props;
-
-    return (
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <View style={styles.container}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Email"
-            onChangeText={this.handleUpdateEmail}
-            value={email}
-          />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Password"
-            onChangeText={this.handleUpdatePassword}
-            value={password}
-          />
-          <Button
-            title="Login"
-            style={styles.button}
-            onPress={() => {
-              if (email.length && password.length) {
-                this.handleLookupUser(email, password, navigation);
-              }
-            }}
-          />
-          <Button
-            title="Register"
-            style={styles.button}
-            onPress={() => navigation.navigate("Register")}
-          />
-        </View>
-      </TouchableWithoutFeedback>
-    );
-  }
+  return (
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <View style={styles.container}>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Email"
+          onChangeText={handleUpdateEmail}
+          value={email}
+        />
+        <TextInput
+          style={styles.textInput}
+          placeholder="Password"
+          onChangeText={handleUpdatePassword}
+          value={password}
+        />
+        <Button
+          title="Login"
+          style={styles.button}
+          onPress={validateLoginInput}
+        />
+        <Button
+          title="Register"
+          style={styles.button}
+          onPress={() => navigation.navigate("Register")}
+        />
+      </View>
+    </TouchableWithoutFeedback>
+  );
 }
 
 const styles = StyleSheet.create({
