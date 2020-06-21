@@ -26,16 +26,14 @@ export default function CalendarScreen({ route, navigation }) {
   const today = formatDateObject(new Date());
   const { userId } = route.params;
 
-  useEffect(() => {
-    getEvents();
-    getCategories();
-  }, [userId]);
+  useEffect(() => refreshData(), [userId]);
+
+  useEffect(() => loadItems(today), [events]);
 
   const refreshData = () => {
     setAgendaItems({});
     getEvents();
     getCategories();
-    setTimeout(() => loadItems(today), 5000);
   };
 
   const getEvents = () => {
