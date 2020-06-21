@@ -16,8 +16,6 @@ export default function LoginPage({ navigation }) {
   const [password, setPassword] = useState("");
 
   const validateLoginInput = () => {
-    console.log(email.search("@"));
-    console.log(email.search("."));
     if (email.length < 10 || email.search("@") == -1) {
       Alert.alert("Email incorrect!", "", [{ text: "OK", onPress: () => {} }]);
     } else if (password.length < 6) {

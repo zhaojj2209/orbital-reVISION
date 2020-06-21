@@ -17,32 +17,32 @@ export default function CategoryList({ route, navigation }) {
   const [categories, setCategories] = useState(null);
   const { userId } = route.params;
 
-  useEffect(() => {
-    const unsubscribe = firebase
+  useEffect(() => getCategories(), [userId]);
+
+  const getCategories = () => {
+    firebase
       .firestore()
       .collection("users")
       .doc(userId)
       .collection("categories")
-      .onSnapshot(
-        (querySnapshot) => {
-          const results = [];
-          querySnapshot.docs.map((documentSnapshot) => {
-            const data = documentSnapshot.data();
-            results.push({
-              key: documentSnapshot.id,
-              data: {
-                title: data.title,
-                colour: data.colour,
-              },
-            });
+      .get()
+      .then((querySnapshot) => {
+        const results = [];
+        querySnapshot.docs.map((documentSnapshot) => {
+          const data = documentSnapshot.data();
+          results.push({
+            key: documentSnapshot.id,
+            data: {
+              title: data.title,
+              colour: data.colour,
+            },
           });
-          setIsLoaded(true);
-          setCategories(results);
-        },
-        (err) => console.error(err)
-      );
-    return unsubscribe;
-  });
+        });
+        setCategories(results);
+        setIsLoaded(true);
+      })
+      .catch((err) => console.error(err));
+  };
 
   const handleDeleteCategory = (categoryId) => {
     firebase
@@ -56,7 +56,7 @@ export default function CategoryList({ route, navigation }) {
         Alert.alert("Category Deleted", "", [
           {
             text: "OK",
-            onPress: () => navigation.navigate("CategoryList"),
+            onPress: getCategories,
           },
         ])
       );
@@ -82,6 +82,7 @@ export default function CategoryList({ route, navigation }) {
                   userId: userId,
                   isNewCategory: false,
                   category: item,
+                  onGoBack: getCategories,
                 })
               }
             />
@@ -112,6 +113,7 @@ export default function CategoryList({ route, navigation }) {
             userId: userId,
             isNewCategory: true,
             category: {},
+            onGoBack: getCategories,
           })
         }
       />

@@ -11,7 +11,11 @@ import {
 import { Agenda } from "react-native-calendars";
 
 import firebase from "../FirebaseDb";
-import { formatTime } from "../constants/DateFormats";
+import {
+  formatTime,
+  formatDateString,
+  formatDateObject,
+} from "../constants/DateFormats";
 
 export default function CalendarScreen({ route, navigation }) {
   const [eventsLoaded, setEventsLoaded] = useState(false);
@@ -19,65 +23,74 @@ export default function CalendarScreen({ route, navigation }) {
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [categories, setCategories] = useState([]);
   const [agendaItems, setAgendaItems] = useState({});
+  const today = formatDateObject(new Date());
   const { userId } = route.params;
 
   useEffect(() => {
-    const unsubscribe = firebase
+    getEvents();
+    getCategories();
+  }, [userId]);
+
+  const refreshData = () => {
+    setAgendaItems({});
+    getEvents();
+    getCategories();
+    setTimeout(() => loadItems(today), 5000);
+  };
+
+  const getEvents = () => {
+    firebase
       .firestore()
       .collection("users")
       .doc(userId)
       .collection("events")
       .orderBy("startDate")
-      .onSnapshot(
-        (querySnapshot) => {
-          const results = [];
-          querySnapshot.docs.map((documentSnapshot) => {
-            const data = documentSnapshot.data();
-            results.push({
-              key: documentSnapshot.id,
-              data: {
-                title: data.title,
-                description: data.description,
-                startDate: data.startDate.toDate(),
-                endDate: data.endDate.toDate(),
-                category: data.category,
-              },
-            });
+      .get()
+      .then((querySnapshot) => {
+        const results = [];
+        querySnapshot.docs.map((documentSnapshot) => {
+          const data = documentSnapshot.data();
+          results.push({
+            key: documentSnapshot.id,
+            data: {
+              title: data.title,
+              description: data.description,
+              startDate: data.startDate.toDate(),
+              endDate: data.endDate.toDate(),
+              category: data.category,
+            },
           });
-          setEventsLoaded(true);
-          setEvents(results);
-        },
-        (err) => console.error(err)
-      );
-    return unsubscribe;
-  });
+        });
+        setEvents(results);
+        setEventsLoaded(true);
+      })
+      .catch((err) => console.error(err));
+  };
 
-  useEffect(() => {
-    const unsubscribe = firebase
+  const getCategories = () => {
+    firebase
       .firestore()
       .collection("users")
       .doc(userId)
       .collection("categories")
-      .onSnapshot(
-        (querySnapshot) => {
-          const results = [];
-          querySnapshot.docs.map((documentSnapshot) => {
-            const data = documentSnapshot.data();
-            results.push({
-              key: documentSnapshot.id,
-              data: {
-                title: data.title,
-                colour: data.colour,
-              },
-            });
+      .get()
+      .then((querySnapshot) => {
+        const results = [];
+        querySnapshot.docs.map((documentSnapshot) => {
+          const data = documentSnapshot.data();
+          results.push({
+            key: documentSnapshot.id,
+            data: {
+              title: data.title,
+              colour: data.colour,
+            },
           });
-          setCategoriesLoaded(true);
-          setCategories(results);
-        },
-        (err) => console.error(err)
-      );
-    return unsubscribe;
-  });
+        });
+        setCategories(results);
+        setCategoriesLoaded(true);
+      })
+      .catch((err) => console.error(err));
+  };
 
   const getCategoryColour = (categoryId) => {
     const filtered = categories.filter((cat) => cat.key == categoryId);
@@ -86,24 +99,19 @@ export default function CalendarScreen({ route, navigation }) {
     };
   };
 
-  const timeToString = (time) => {
-    const date = new Date(time);
-    return date.toISOString().split("T")[0];
-  };
+  const timeToString = (time) => formatDateString(new Date(time));
 
   const loadItems = (day) => {
     setTimeout(() => {
       for (let i = -15; i <= 15; i++) {
         const time = day.timestamp + i * 24 * 60 * 60 * 1000;
         const strTime = timeToString(time);
-        if (!agendaItems[strTime]) {
-          agendaItems[strTime] = [];
-          const filtered = events.filter((item) => {
-            return item.data.startDate.toISOString().split("T")[0] == strTime;
-          });
-          for (let j = 0; j < filtered.length; j++) {
-            agendaItems[strTime].push(filtered[j]);
-          }
+        agendaItems[strTime] = [];
+        const filtered = events.filter((item) => {
+          return formatDateString(item.data.startDate) == strTime;
+        });
+        for (let j = 0; j < filtered.length; j++) {
+          agendaItems[strTime].push(filtered[j]);
         }
       }
       const newItems = {};
@@ -120,7 +128,7 @@ export default function CalendarScreen({ route, navigation }) {
         items={agendaItems}
         loadItemsForMonth={loadItems}
         onDayChange={loadItems}
-        selected={new Date().toISOString().split("T")[0]}
+        selected={formatDateString(new Date())}
         pastScrollRange={6}
         futureScrollRange={6}
         renderItem={(item) => {
@@ -157,6 +165,7 @@ export default function CalendarScreen({ route, navigation }) {
         rowHasChanged={(r1, r2) => {
           return r1.key !== r2.key;
         }}
+        onRefresh={refreshData}
         style={{ flex: 1 }}
       />
       <View style={styles.bottom}>

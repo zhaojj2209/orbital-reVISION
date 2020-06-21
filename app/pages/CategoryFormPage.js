@@ -20,7 +20,7 @@ export default function CategoryFormPage({ route, navigation }) {
   const [colour, setColour] = useState(Colours.one);
   const [showPicker, setShowPicker] = useState(Platform.OS === "android");
 
-  const { userId, isNewCategory, category } = route.params;
+  const { userId, isNewCategory, category, onGoBack } = route.params;
 
   useEffect(() => {
     if (!isNewCategory) {
@@ -44,7 +44,10 @@ export default function CategoryFormPage({ route, navigation }) {
         Alert.alert("Category Created", "", [
           {
             text: "OK",
-            onPress: () => navigation.navigate("CategoryList"),
+            onPress: () => {
+              onGoBack();
+              navigation.navigate("CategoryList");
+            },
           },
         ])
       )
@@ -65,7 +68,10 @@ export default function CategoryFormPage({ route, navigation }) {
         Alert.alert("Category Edited Successfully", "", [
           {
             text: "OK",
-            onPress: () => navigation.navigate("CategoryList"),
+            onPress: () => {
+              onGoBack();
+              navigation.navigate("CategoryList");
+            },
           },
         ])
       )
