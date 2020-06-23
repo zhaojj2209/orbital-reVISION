@@ -33,7 +33,7 @@ export default function EventFormPage({ route, navigation }) {
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
-  const { userId, isNewEvent, event, categories } = route.params;
+  const { userId, isNewEvent, event, categories, onGoBack } = route.params;
 
   useEffect(() => {
     if (!isNewEvent) {
@@ -67,7 +67,10 @@ export default function EventFormPage({ route, navigation }) {
         Alert.alert("Event Created", "", [
           {
             text: "OK",
-            onPress: () => navigation.navigate("Calendar"),
+            onPress: () => {
+              onGoBack();
+              navigation.navigate("Calendar");
+            },
           },
         ])
       )
@@ -91,7 +94,10 @@ export default function EventFormPage({ route, navigation }) {
         Alert.alert("Event Edited Successfully", "", [
           {
             text: "OK",
-            onPress: () => navigation.navigate("Calendar"),
+            onPress: () => {
+              onGoBack();
+              navigation.navigate("Calendar");
+            },
           },
         ])
       )

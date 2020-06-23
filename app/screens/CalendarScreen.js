@@ -36,6 +36,21 @@ export default function CalendarScreen({ route, navigation }) {
     getCategories();
   };
 
+  const refreshDay = (day) => {
+    agendaItems[day] = [];
+    const filtered = events.filter((item) => {
+      return formatDateString(item.data.startDate) == strTime;
+    });
+    for (let j = 0; j < filtered.length; j++) {
+      agendaItems[strTime].push(filtered[j]);
+    }
+    const newItems = {};
+    Object.keys(agendaItems).forEach((key) => {
+      newItems[key] = agendaItems[key];
+    });
+    setAgendaItems(newItems);
+  };
+
   const getEvents = () => {
     firebase
       .firestore()
@@ -141,6 +156,7 @@ export default function CalendarScreen({ route, navigation }) {
                   userId: userId,
                   event: item,
                   categories: categories,
+                  onGoBack: refreshData,
                 })
               }
             >
@@ -176,6 +192,7 @@ export default function CalendarScreen({ route, navigation }) {
               isNewEvent: true,
               event: {},
               categories: categories,
+              onGoBack: refreshData,
             })
           }
         />

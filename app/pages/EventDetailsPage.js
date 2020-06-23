@@ -9,11 +9,22 @@ import {
 } from "react-native";
 
 import firebase from "../FirebaseDb";
-import { formatDate, formatTime } from "../constants/DateFormats";
+import {
+  formatDate,
+  formatTime,
+  formatDateString,
+} from "../constants/DateFormats";
 
 export default function EventDetailsPage({ route, navigation }) {
   const { userId, event, categories } = route.params;
-  const { title, description, startDate, endDate, category } = event.data;
+  const {
+    title,
+    description,
+    startDate,
+    endDate,
+    category,
+    onGoBack,
+  } = event.data;
 
   const handleDeleteEvent = () => {
     firebase
@@ -27,7 +38,10 @@ export default function EventDetailsPage({ route, navigation }) {
         Alert.alert("Event Deleted", "", [
           {
             text: "OK",
-            onPress: () => navigation.navigate("Calendar"),
+            onPress: () => {
+              onGoBack();
+              navigation.navigate("Calendar");
+            },
           },
         ])
       );
