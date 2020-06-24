@@ -262,6 +262,7 @@ export default function CalendarScreen({ route, navigation }) {
           onPress={() =>
             navigation.navigate("CategoryList", {
               userId: userId,
+              onGoBack: refreshData,
             })
           }
         />
