@@ -5,7 +5,7 @@ import {
   SafeAreaView,
   Text,
   Button,
-  ActivityIndicator,
+  Alert,
   TouchableOpacity,
 } from "react-native";
 import { Agenda } from "react-native-calendars";
@@ -18,13 +18,15 @@ import {
 } from "../constants/DateFormats";
 
 export default function CalendarScreen({ route, navigation }) {
-  const [eventsLoaded, setEventsLoaded] = useState(false);
   const [events, setEvents] = useState([]);
-  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [categories, setCategories] = useState([]);
   const [agendaItems, setAgendaItems] = useState({});
-  const today = formatDateObject(new Date());
+  const today = formatDateObject(new Date(formatDateString(new Date())));
   const { userId } = route.params;
+  const wakeTime = 0 * 60 * 60 * 1000;
+  const sleepTime = 16 * 60 * 60 * 1000;
+  const bufferTime = 15 * 60 * 1000;
+  const minimumSessionTime = 30 * 60 * 1000;
 
   useEffect(() => refreshData(), [userId]);
 
@@ -34,21 +36,6 @@ export default function CalendarScreen({ route, navigation }) {
     setAgendaItems({});
     getEvents();
     getCategories();
-  };
-
-  const refreshDay = (day) => {
-    agendaItems[day] = [];
-    const filtered = events.filter((item) => {
-      return formatDateString(item.data.startDate) == strTime;
-    });
-    for (let j = 0; j < filtered.length; j++) {
-      agendaItems[strTime].push(filtered[j]);
-    }
-    const newItems = {};
-    Object.keys(agendaItems).forEach((key) => {
-      newItems[key] = agendaItems[key];
-    });
-    setAgendaItems(newItems);
   };
 
   const getEvents = () => {
@@ -75,7 +62,6 @@ export default function CalendarScreen({ route, navigation }) {
           });
         });
         setEvents(results);
-        setEventsLoaded(true);
       })
       .catch((err) => console.error(err));
   };
@@ -100,7 +86,6 @@ export default function CalendarScreen({ route, navigation }) {
           });
         });
         setCategories(results);
-        setCategoriesLoaded(true);
       })
       .catch((err) => console.error(err));
   };
@@ -113,6 +98,61 @@ export default function CalendarScreen({ route, navigation }) {
   };
 
   const timeToString = (time) => formatDateString(new Date(time));
+
+  const scheduleStudySessions = () => {
+    for (let i = 1; i <= 1; i++) {
+      const dayStart = today.timestamp + i * 24 * 60 * 60 * 1000 + wakeTime;
+      const dayEnd = today.timestamp + i * 24 * 60 * 60 * 1000 + sleepTime;
+      const dayEvents = agendaItems[timeToString(dayStart)];
+      let nextSessionTime = dayStart;
+      for (let j = 0; j < dayEvents.length; j++) {
+        const nextEvent = dayEvents[j];
+        const { startDate, endDate } = nextEvent.data;
+        const sessionStart = nextSessionTime;
+        const sessionEnd = startDate.getTime() - bufferTime;
+        nextSessionTime = endDate.getTime() + bufferTime;
+        if (sessionEnd - sessionStart > minimumSessionTime) {
+          firebase
+            .firestore()
+            .collection("users")
+            .doc(userId)
+            .collection("events")
+            .add({
+              title: "Study Session",
+              description: "Time to get work done!",
+              startDate: new Date(sessionStart),
+              endDate: new Date(sessionEnd),
+              category: "",
+            })
+            .catch((err) => console.error(err));
+        }
+      }
+      if (
+        dayEnd - nextSessionTime > 0 &&
+        dayEnd - nextSessionTime > minimumSessionTime
+      ) {
+        firebase
+          .firestore()
+          .collection("users")
+          .doc(userId)
+          .collection("events")
+          .add({
+            title: "Study Session",
+            description: "Time to get work done!",
+            startDate: new Date(nextSessionTime),
+            endDate: new Date(dayEnd),
+            category: "",
+          })
+          .catch((err) => console.error(err));
+      }
+      Alert.alert("Study sessions scheduled", "", [
+        {
+          text: "OK",
+          onPress: refreshData,
+        },
+      ]);
+    }
+  };
 
   const loadItems = (day) => {
     setTimeout(() => {
@@ -135,7 +175,7 @@ export default function CalendarScreen({ route, navigation }) {
     }, 1000);
   };
 
-  return eventsLoaded && categoriesLoaded ? (
+  return (
     <SafeAreaView style={styles.container}>
       <Agenda
         items={agendaItems}
@@ -182,6 +222,22 @@ export default function CalendarScreen({ route, navigation }) {
         onRefresh={refreshData}
         style={{ flex: 1 }}
       />
+      <Button
+        title="Schedule Study Sessions"
+        style={styles.button}
+        onPress={() =>
+          Alert.alert("Confirm schedule?", "", [
+            {
+              text: "OK",
+              onPress: scheduleStudySessions,
+            },
+            {
+              text: "Cancel",
+              onPress: () => {},
+            },
+          ])
+        }
+      />
       <View style={styles.bottom}>
         <Button
           title="Create New Event"
@@ -217,8 +273,6 @@ export default function CalendarScreen({ route, navigation }) {
         />
       </View>
     </SafeAreaView>
-  ) : (
-    <ActivityIndicator />
   );
 }
 
