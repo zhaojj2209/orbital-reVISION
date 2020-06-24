@@ -43,7 +43,14 @@ export default function EventDetailsPage({ route, navigation }) {
 
   const categoryString = () => {
     const filtered = categories.filter((cat) => cat.key == category);
-    return "Category: " + (filtered.length ? filtered[0].data.title : "None");
+    return (
+      "Category: " +
+      (filtered.length
+        ? filtered[0].data.title
+        : category.length == 0
+        ? "None"
+        : "Study Session")
+    );
   };
 
   return (

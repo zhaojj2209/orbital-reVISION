@@ -93,7 +93,11 @@ export default function CalendarScreen({ route, navigation }) {
   const getCategoryColour = (categoryId) => {
     const filtered = categories.filter((cat) => cat.key == categoryId);
     return {
-      backgroundColor: filtered.length ? filtered[0].data.colour : "#f9c2ff",
+      backgroundColor: filtered.length
+        ? filtered[0].data.colour
+        : categoryId.length == 0
+        ? "#f9c2ff"
+        : "#ff6d01",
     };
   };
 
@@ -122,7 +126,7 @@ export default function CalendarScreen({ route, navigation }) {
               description: "Time to get work done!",
               startDate: new Date(sessionStart),
               endDate: new Date(sessionEnd),
-              category: "",
+              category: "Study Session",
             })
             .catch((err) => console.error(err));
         }
@@ -141,7 +145,7 @@ export default function CalendarScreen({ route, navigation }) {
             description: "Time to get work done!",
             startDate: new Date(nextSessionTime),
             endDate: new Date(dayEnd),
-            category: "",
+            category: "Study Session",
           })
           .catch((err) => console.error(err));
       }
