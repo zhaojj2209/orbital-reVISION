@@ -57,7 +57,9 @@ export default function RegisterPage({ navigation }) {
           },
         ])
       )
-      .catch((err) => console.error(err));
+      .catch((err) =>
+        Alert.alert(err.message, "", [{ text: "OK", onPress: () => {} }])
+      );
 
   const handleUpdateUsername = (username) => setUsername(username);
 
