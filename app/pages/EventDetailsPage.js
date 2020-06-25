@@ -37,9 +37,9 @@ export default function EventDetailsPage({ route, navigation }) {
   };
 
   const startDateString =
-    "Start: " + formatDate(startDate) + "    " + formatTime(startDate);
+    "Start: " + formatDate(startDate) + " " + formatTime(startDate);
   const endDateString =
-    "End: " + formatDate(endDate) + "    " + formatTime(endDate);
+    "End: " + formatDate(endDate) + " " + formatTime(endDate);
 
   const categoryString = () => {
     const filtered = categories.filter((cat) => cat.key == category);
@@ -55,10 +55,10 @@ export default function EventDetailsPage({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View>
-        <Text style={styles.text}>{title}</Text>
+      <View style={styles.details}>
+        <Text style={styles.text}>Title: {title}</Text>
         <Text style={styles.text}>
-          {description.length ? description : "No description"}
+          Description: {description.length ? description : "No description"}
         </Text>
         <Text style={styles.text}>{startDateString}</Text>
         <Text style={styles.text}>{endDateString}</Text>
@@ -103,8 +103,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-around",
   },
+  details: {
+    padding: 40,
+  },
   text: {
-    fontSize: 20,
+    fontSize: 18,
     padding: 10,
   },
 });

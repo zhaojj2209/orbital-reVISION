@@ -293,7 +293,13 @@ const styles = StyleSheet.create({
   event: {
     backgroundColor: "#f9c2ff",
     padding: 20,
-    marginVertical: 8,
+    marginHorizontal: 20,
+    marginVertical: 10,
+    borderRadius: 6,
+    elevation: 3,
+    shadowOffset: { width: 1, height: 1 },
+    shadowColor: "#333",
+    shadowOpacity: 0.3,
   },
   text: {
     fontSize: 20,
