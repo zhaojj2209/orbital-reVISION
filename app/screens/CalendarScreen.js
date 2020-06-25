@@ -15,6 +15,9 @@ import {
   formatTime,
   formatDateString,
   formatDateObject,
+  getDays,
+  getHours,
+  getMinutes,
 } from "../constants/DateFormats";
 
 export default function CalendarScreen({ route, navigation }) {
@@ -23,10 +26,10 @@ export default function CalendarScreen({ route, navigation }) {
   const [agendaItems, setAgendaItems] = useState({});
   const today = formatDateObject(new Date(formatDateString(new Date())));
   const { userId } = route.params;
-  const wakeTime = 0 * 60 * 60 * 1000;
-  const sleepTime = 16 * 60 * 60 * 1000;
-  const bufferTime = 15 * 60 * 1000;
-  const minimumSessionTime = 30 * 60 * 1000;
+  const wakeTime = getHours(0);
+  const sleepTime = getHours(16);
+  const bufferTime = getMinutes(15);
+  const minimumSessionTime = getMinutes(30);
 
   useEffect(() => refreshData(), [userId]);
 
@@ -104,9 +107,9 @@ export default function CalendarScreen({ route, navigation }) {
   const timeToString = (time) => formatDateString(new Date(time));
 
   const scheduleStudySessions = () => {
-    for (let i = 1; i <= 1; i++) {
-      const dayStart = today.timestamp + i * 24 * 60 * 60 * 1000 + wakeTime;
-      const dayEnd = today.timestamp + i * 24 * 60 * 60 * 1000 + sleepTime;
+    for (let i = 1; i <= 7; i++) {
+      const dayStart = today.timestamp + getDays(i) + wakeTime;
+      const dayEnd = today.timestamp + getDays(i) + sleepTime;
       const dayEvents = agendaItems[timeToString(dayStart)];
       let nextSessionTime = dayStart;
       for (let j = 0; j < dayEvents.length; j++) {
@@ -132,7 +135,7 @@ export default function CalendarScreen({ route, navigation }) {
         }
       }
       if (
-        dayEnd - nextSessionTime > 0 &&
+        dayEnd > nextSessionTime &&
         dayEnd - nextSessionTime > minimumSessionTime
       ) {
         firebase
@@ -161,7 +164,7 @@ export default function CalendarScreen({ route, navigation }) {
   const loadItems = (day) => {
     setTimeout(() => {
       for (let i = -15; i <= 15; i++) {
-        const time = day.timestamp + i * 24 * 60 * 60 * 1000;
+        const time = day.timestamp + getDays(i);
         const strTime = timeToString(time);
         agendaItems[strTime] = [];
         const filtered = events.filter((item) => {

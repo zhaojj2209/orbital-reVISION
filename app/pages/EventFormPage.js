@@ -18,6 +18,7 @@ import {
   formatDate,
   formatTime,
   newRoundedDate,
+  getHours,
 } from "../constants/DateFormats";
 
 export default function EventFormPage({ route, navigation }) {
@@ -51,57 +52,71 @@ export default function EventFormPage({ route, navigation }) {
   }, [event]);
 
   const handleCreateEvent = () =>
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("events")
-      .add({
-        title: title,
-        description: description,
-        startDate: startDate,
-        endDate: endDate,
-        category: categoryId,
-      })
-      .then(() =>
-        Alert.alert("Event Created", "", [
+    startDate >= endDate
+      ? Alert.alert("Event duration invalid!", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              navigation.navigate("Calendar");
-            },
+            onPress: () => {},
           },
         ])
-      )
-      .catch((err) => console.error(err));
+      : firebase
+          .firestore()
+          .collection("users")
+          .doc(userId)
+          .collection("events")
+          .add({
+            title: title,
+            description: description,
+            startDate: startDate,
+            endDate: endDate,
+            category: categoryId,
+          })
+          .then(() =>
+            Alert.alert("Event Created", "", [
+              {
+                text: "OK",
+                onPress: () => {
+                  onGoBack();
+                  navigation.navigate("Calendar");
+                },
+              },
+            ])
+          )
+          .catch((err) => console.error(err));
 
   const handleEditEvent = () =>
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("events")
-      .doc(event.key)
-      .set({
-        title: title,
-        description: description,
-        startDate: startDate,
-        endDate: endDate,
-        category: categoryId,
-      })
-      .then(() =>
-        Alert.alert("Event Edited Successfully", "", [
+    startDate >= endDate
+      ? Alert.alert("Event duration invalid!", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              navigation.navigate("Calendar");
-            },
+            onPress: () => {},
           },
         ])
-      )
-      .catch((err) => console.error(err));
+      : firebase
+          .firestore()
+          .collection("users")
+          .doc(userId)
+          .collection("events")
+          .doc(event.key)
+          .set({
+            title: title,
+            description: description,
+            startDate: startDate,
+            endDate: endDate,
+            category: categoryId,
+          })
+          .then(() =>
+            Alert.alert("Event Edited Successfully", "", [
+              {
+                text: "OK",
+                onPress: () => {
+                  onGoBack();
+                  navigation.navigate("Calendar");
+                },
+              },
+            ])
+          )
+          .catch((err) => console.error(err));
 
   const handleUpdateTitle = (title) => setTitle(title);
 
@@ -126,8 +141,10 @@ export default function EventFormPage({ route, navigation }) {
 
   const handleUpdateStartDate = (event, selectedDate) => {
     const currentDate = selectedDate || startDate;
+    if (currentDate > startDate && currentDate >= endDate) {
+      setEndDate(new Date(currentDate.getTime() + getHours(1)));
+    }
     setStartDate(currentDate);
-    setEndDate(currentDate);
     if (Platform.OS === "android") {
       closeAllDatePickers();
     }
@@ -210,6 +227,7 @@ export default function EventFormPage({ route, navigation }) {
         {showEndDatePicker && (
           <DatePicker
             initialDate={endDate}
+            minimumDate={startDate}
             onChange={handleUpdateEndDate}
             mode="date"
           />
@@ -217,6 +235,7 @@ export default function EventFormPage({ route, navigation }) {
         {showEndTimePicker && (
           <DatePicker
             initialDate={endDate}
+            minimumDate={startDate}
             onChange={handleUpdateEndDate}
             mode="time"
           />
