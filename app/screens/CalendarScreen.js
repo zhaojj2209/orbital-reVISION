@@ -18,22 +18,23 @@ import {
   getDays,
   getHours,
   getMinutes,
+  today,
 } from "../constants/DateFormats";
 
 export default function CalendarScreen({ route, navigation }) {
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);
   const [agendaItems, setAgendaItems] = useState({});
-  const today = formatDateObject(new Date(formatDateString(new Date())));
+  const todayObject = formatDateObject(today);
   const { userId } = route.params;
-  const wakeTime = getHours(0);
-  const sleepTime = getHours(16);
+  const wakeTime = getHours(8);
+  const sleepTime = getHours(24);
   const bufferTime = getMinutes(15);
   const minimumSessionTime = getMinutes(30);
 
   useEffect(() => refreshData(), [userId]);
 
-  useEffect(() => loadItems(today), [events]);
+  useEffect(() => loadItems(todayObject), [events]);
 
   const refreshData = () => {
     setAgendaItems({});
@@ -108,8 +109,8 @@ export default function CalendarScreen({ route, navigation }) {
 
   const scheduleStudySessions = () => {
     for (let i = 1; i <= 7; i++) {
-      const dayStart = today.timestamp + getDays(i) + wakeTime;
-      const dayEnd = today.timestamp + getDays(i) + sleepTime;
+      const dayStart = todayObject.timestamp + getDays(i) + wakeTime;
+      const dayEnd = todayObject.timestamp + getDays(i) + sleepTime;
       const dayEvents = agendaItems[timeToString(dayStart)];
       let nextSessionTime = dayStart;
       for (let j = 0; j < dayEvents.length; j++) {

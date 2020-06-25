@@ -179,7 +179,7 @@ export default function TaskInputPage({ route, navigation }) {
                   errors.expectedCompletionTime}
               </Text>
               <View style={styles.dates}>
-                <Text style={styles.dateText}>Deadline:</Text>
+                <Text style={styles.dateText}>Deadline: </Text>
                 <Text onPress={showDatePicker} style={styles.dateText}>
                   {values.deadline}
                 </Text>
