@@ -53,7 +53,13 @@ export default function RegisterPage({ navigation }) {
         Alert.alert("Registration Successful!", "", [
           {
             text: "OK",
-            onPress: () => navigation.navigate("Home"),
+            onPress: () =>
+              navigation.navigate("Home", {
+                screen: "SleepSchedule",
+                params: {
+                  userId: firebase.auth().currentUser.uid,
+                },
+              }),
           },
         ])
       )

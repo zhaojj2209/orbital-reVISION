@@ -16,7 +16,6 @@ import {
   formatDateString,
   formatDateObject,
   getDays,
-  getHours,
   getMinutes,
   today,
 } from "../constants/DateFormats";
@@ -27,8 +26,6 @@ export default function CalendarScreen({ route, navigation }) {
   const [agendaItems, setAgendaItems] = useState({});
   const todayObject = formatDateObject(today);
   const { userId } = route.params;
-  const wakeTime = getHours(8);
-  const sleepTime = getHours(24);
   const bufferTime = getMinutes(15);
   const minimumSessionTime = getMinutes(30);
 
@@ -108,58 +105,73 @@ export default function CalendarScreen({ route, navigation }) {
   const timeToString = (time) => formatDateString(new Date(time));
 
   const scheduleStudySessions = () => {
-    for (let i = 1; i <= 7; i++) {
-      const dayStart = todayObject.timestamp + getDays(i) + wakeTime;
-      const dayEnd = todayObject.timestamp + getDays(i) + sleepTime;
-      const dayEvents = agendaItems[timeToString(dayStart)];
-      let nextSessionTime = dayStart;
-      for (let j = 0; j < dayEvents.length; j++) {
-        const nextEvent = dayEvents[j];
-        const { startDate, endDate } = nextEvent.data;
-        const sessionStart = nextSessionTime;
-        const sessionEnd = startDate.getTime() - bufferTime;
-        nextSessionTime = endDate.getTime() + bufferTime;
-        if (sessionEnd - sessionStart > minimumSessionTime) {
-          firebase
-            .firestore()
-            .collection("users")
-            .doc(userId)
-            .collection("events")
-            .add({
-              title: "Study Session",
-              description: "Time to get work done!",
-              startDate: new Date(sessionStart),
-              endDate: new Date(sessionEnd),
-              category: "Study Session",
-            })
-            .catch((err) => console.error(err));
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .collection("sleep")
+      .doc("schedule")
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          const { wakeTime, sleepTime } = doc.data();
+          for (let i = 1; i <= 7; i++) {
+            const dayStart = todayObject.timestamp + getDays(i) + wakeTime;
+            const dayEnd = todayObject.timestamp + getDays(i) + sleepTime;
+            const dayEvents = agendaItems[timeToString(dayStart)];
+            let nextSessionTime = dayStart;
+            for (let j = 0; j < dayEvents.length; j++) {
+              const nextEvent = dayEvents[j];
+              const { startDate, endDate } = nextEvent.data;
+              const sessionStart = nextSessionTime;
+              const sessionEnd = startDate.getTime() - bufferTime;
+              nextSessionTime = endDate.getTime() + bufferTime;
+              if (sessionEnd - sessionStart > minimumSessionTime) {
+                firebase
+                  .firestore()
+                  .collection("users")
+                  .doc(userId)
+                  .collection("events")
+                  .add({
+                    title: "Study Session",
+                    description: "Time to get work done!",
+                    startDate: new Date(sessionStart),
+                    endDate: new Date(sessionEnd),
+                    category: "Study Session",
+                  })
+                  .catch((err) => console.error(err));
+              }
+            }
+            if (
+              dayEnd > nextSessionTime &&
+              dayEnd - nextSessionTime > minimumSessionTime
+            ) {
+              firebase
+                .firestore()
+                .collection("users")
+                .doc(userId)
+                .collection("events")
+                .add({
+                  title: "Study Session",
+                  description: "Time to get work done!",
+                  startDate: new Date(nextSessionTime),
+                  endDate: new Date(dayEnd),
+                  category: "Study Session",
+                })
+                .catch((err) => console.error(err));
+            }
+          }
         }
-      }
-      if (
-        dayEnd > nextSessionTime &&
-        dayEnd - nextSessionTime > minimumSessionTime
-      ) {
-        firebase
-          .firestore()
-          .collection("users")
-          .doc(userId)
-          .collection("events")
-          .add({
-            title: "Study Session",
-            description: "Time to get work done!",
-            startDate: new Date(nextSessionTime),
-            endDate: new Date(dayEnd),
-            category: "Study Session",
-          })
-          .catch((err) => console.error(err));
-      }
-      Alert.alert("Study sessions scheduled", "", [
-        {
-          text: "OK",
-          onPress: refreshData,
-        },
-      ]);
-    }
+      })
+      .then(() =>
+        Alert.alert("Study sessions scheduled", "", [
+          {
+            text: "OK",
+            onPress: refreshData,
+          },
+        ])
+      )
+      .catch((err) => console.error(err));
   };
 
   const loadItems = (day) => {
@@ -246,6 +258,17 @@ export default function CalendarScreen({ route, navigation }) {
           ])
         }
       />
+      <View style={styles.bottom}>
+        <Button
+          title="Edit Sleep Schedule"
+          style={styles.button}
+          onPress={() =>
+            navigation.navigate("SleepSchedule", {
+              userId: userId,
+            })
+          }
+        />
+      </View>
       <View style={styles.bottom}>
         <Button
           title="Create New Event"
