@@ -7,15 +7,16 @@ import {
   Alert,
   SafeAreaView,
 } from "react-native";
-import firebase from "../firebaseDb";
+import firebase from "../FirebaseDb";
 
-export default function TaskDetailsPage({ navigation }) {
-  const item = navigation.getParam("item");
+export default function TaskDetailsPage({ route, navigation }) {
+  const { userId, item, getTasks } = route.params;
 
-  const getTasks = navigation.getParam("getTasks");
   const handleDeleteTask = (key) => {
     firebase
       .firestore()
+      .collection("users")
+      .doc(userId)
       .collection("tasks")
       .doc(key)
       .delete()

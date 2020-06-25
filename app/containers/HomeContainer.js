@@ -2,7 +2,7 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import CalendarContainer from "../containers/CalendarContainer";
-import TaskScreen from "../screens/TaskScreen";
+import TaskContainer from "../containers/TaskContainer";
 import firebase from "../FirebaseDb";
 
 const Tab = createBottomTabNavigator();
@@ -20,7 +20,7 @@ export default function HomeContainer() {
       />
       <Tab.Screen
         name="Tasks"
-        component={TaskScreen}
+        component={TaskContainer}
         initialParams={{
           userId: user.uid,
         }}

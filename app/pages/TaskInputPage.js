@@ -12,16 +12,13 @@ import {
 import { Formik } from "formik";
 import * as yup from "yup";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import firebase from "../firebaseDb";
+import firebase from "../FirebaseDb";
 
 import moment from "moment";
 
-export default function TaskInputPage({ navigation }) {
+export default function TaskInputPage({ route, navigation }) {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const onGoback = navigation.getParam("onGoBack");
-  const isNewTask = navigation.getParam("isNewTask");
-  const task = navigation.getParam("task");
-  console.log(task);
+  const { userId, onGoBack, isNewTask, task } = route.params;
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -54,6 +51,8 @@ export default function TaskInputPage({ navigation }) {
   const handleCreateTask = (values) =>
     firebase
       .firestore()
+      .collection("users")
+      .doc(userId)
       .collection("tasks")
       .add({
         title: values.title,
@@ -67,7 +66,7 @@ export default function TaskInputPage({ navigation }) {
           {
             text: "OK",
             onPress: () => {
-              onGoback();
+              onGoBack();
               navigation.navigate("TaskList");
             },
           },
@@ -78,6 +77,8 @@ export default function TaskInputPage({ navigation }) {
   const handleEditTask = (values) =>
     firebase
       .firestore()
+      .collection("users")
+      .doc(userId)
       .collection("tasks")
       .doc(task.key)
       .set({
@@ -92,7 +93,7 @@ export default function TaskInputPage({ navigation }) {
           {
             text: "OK",
             onPress: () => {
-              onGoback();
+              onGoBack();
               navigation.navigate("TaskList");
             },
           },
@@ -100,7 +101,7 @@ export default function TaskInputPage({ navigation }) {
       )
       .catch((err) => console.error(err));
   return (
-    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss}>
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
         <Formik
           initialValues={
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
     borderColor: "black",
     fontSize: 20,
     padding: 10,
-    width: 350,
+    width: 300,
   },
   dateText: {
     fontSize: 20,

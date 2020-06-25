@@ -10,13 +10,14 @@ import {
   Modal,
   Alert,
 } from "react-native";
-import firebase from "../firebaseDb";
+import firebase from "../FirebaseDb";
 import moment from "moment";
 import { TouchableOpacity } from "react-native-gesture-handler";
 
-export default function TaskListScreen({ navigation }) {
+export default function TaskListScreen({ route, navigation }) {
   const [tasks, setTasks] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const { userId } = route.params;
 
   useEffect(() => getTasks(), []);
 
@@ -41,6 +42,8 @@ export default function TaskListScreen({ navigation }) {
     }
     firebase
       .firestore()
+      .collection("users")
+      .doc(userId)
       .collection("tasks")
       .get()
       .then((querySnapshot) => {
@@ -75,7 +78,6 @@ export default function TaskListScreen({ navigation }) {
         setTasks(coloredResults);
       })
       .catch((err) => console.error(err));
-    console.log(tasks);
   };
 
   return (
@@ -88,8 +90,8 @@ export default function TaskListScreen({ navigation }) {
               <TouchableOpacity
                 onPress={() =>
                   navigation.navigate("TaskDetails", {
+                    userId,
                     item,
-
                     getTasks,
                   })
                 }
@@ -109,6 +111,7 @@ export default function TaskListScreen({ navigation }) {
         title="Add Tasks"
         onPress={() => {
           navigation.navigate("TaskInput", {
+            userId: userId,
             onGoBack: getTasks,
             isNewTask: true,
             task: null,
