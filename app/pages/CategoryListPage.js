@@ -100,42 +100,44 @@ export default function CategoryList({ route, navigation }) {
         renderItem={({ item }) => (
           <View
             style={StyleSheet.flatten([
-              styles.category,
+              styles.card,
               { backgroundColor: item.data.colour },
             ])}
           >
             <Text style={styles.text}>{item.data.title}</Text>
-            <Button
-              title="Edit"
-              style={styles.button}
-              onPress={() =>
-                navigation.navigate("CategoryForm", {
-                  userId: userId,
-                  isNewCategory: false,
-                  category: item,
-                  onGoBack: () => {
-                    onGoBack();
-                    getCategories();
-                  },
-                })
-              }
-            />
-            <Button
-              title="Delete"
-              style={styles.button}
-              onPress={() =>
-                Alert.alert("Confirm delete?", "Event: " + item.data.title, [
-                  {
-                    text: "OK",
-                    onPress: () => handleDeleteCategory(item.key),
-                  },
-                  {
-                    text: "Cancel",
-                    onPress: () => {},
-                  },
-                ])
-              }
-            />
+            <View style={styles.buttonRow}>
+              <Button
+                title="Edit"
+                style={styles.button}
+                onPress={() =>
+                  navigation.navigate("CategoryForm", {
+                    userId: userId,
+                    isNewCategory: false,
+                    category: item,
+                    onGoBack: () => {
+                      onGoBack();
+                      getCategories();
+                    },
+                  })
+                }
+              />
+              <Button
+                title="Delete"
+                style={styles.button}
+                onPress={() =>
+                  Alert.alert("Confirm delete?", "Event: " + item.data.title, [
+                    {
+                      text: "OK",
+                      onPress: () => handleDeleteCategory(item.key),
+                    },
+                    {
+                      text: "Cancel",
+                      onPress: () => {},
+                    },
+                  ])
+                }
+              />
+            </View>
           </View>
         )}
       />
@@ -168,6 +170,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-around",
   },
+  card: {
+    borderRadius: 6,
+    elevation: 3,
+    shadowOffset: { width: 1, height: 1 },
+    shadowColor: "#333",
+    shadowOpacity: 0.3,
+    margin: 6,
+    width: 350,
+    backgroundColor: "#f9c2ff",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
   category: {
     flexDirection: "row",
     alignItems: "center",
@@ -178,6 +194,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 20,
-    padding: 10,
+    padding: 12,
   },
 });

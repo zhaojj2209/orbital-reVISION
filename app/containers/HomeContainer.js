@@ -1,30 +1,32 @@
 import React from "react";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
 
-import CalendarContainer from "../containers/CalendarContainer";
-import TaskContainer from "../containers/TaskContainer";
+import SleepSchedulePage from "../pages/SleepSchedulePage";
 import firebase from "../FirebaseDb";
+import TabsContainer from "./TabsContainer";
 
-const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 export default function HomeContainer() {
   const user = firebase.auth().currentUser;
   return (
-    <Tab.Navigator initialRouteName="Calendar">
-      <Tab.Screen
-        name="Calendar"
-        component={CalendarContainer}
+    <Stack.Navigator initialRouteName="Tabs">
+      <Stack.Screen
+        name="Tabs"
+        component={TabsContainer}
         initialParams={{
           userId: user.uid,
         }}
+        options={{ headerShown: false }}
       />
-      <Tab.Screen
-        name="Tasks"
-        component={TaskContainer}
+      <Stack.Screen
+        name="SleepSchedule"
+        component={SleepSchedulePage}
         initialParams={{
           userId: user.uid,
         }}
+        options={{ headerShown: false }}
       />
-    </Tab.Navigator>
+    </Stack.Navigator>
   );
 }

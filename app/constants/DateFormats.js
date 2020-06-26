@@ -27,3 +27,7 @@ export const getMinutes = (mins) => mins * 60 * 1000;
 export const getHours = (hrs) => hrs * getMinutes(60);
 
 export const getDays = (days) => days * getHours(24);
+
+export const today = new Date(
+  formatDateString(new Date()) + "T00:00:00.000+08:00"
+);

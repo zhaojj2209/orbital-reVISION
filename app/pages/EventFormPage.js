@@ -46,7 +46,9 @@ export default function EventFormPage({ route, navigation }) {
       if (category.length > 0) {
         setCategoryId(category);
         const filtered = categories.filter((cat) => cat.key == category);
-        setCategoryName(filtered[0].data.title);
+        setCategoryName(
+          filtered.length ? filtered[0].data.title : "Study Session"
+        );
       }
     }
   }, [event]);
@@ -183,13 +185,14 @@ export default function EventFormPage({ route, navigation }) {
           value={title}
         />
         <TextInput
+          multiline
           style={styles.textInput}
           placeholder="Description"
           onChangeText={handleUpdateDescription}
           value={description}
         />
         <View style={styles.dates}>
-          <Text>Start:</Text>
+          <Text style={styles.dateText}>Start:</Text>
           <Button
             onPress={handleToggleStartDatePicker}
             title={formatDate(startDate)}
@@ -214,7 +217,7 @@ export default function EventFormPage({ route, navigation }) {
           />
         )}
         <View style={styles.dates}>
-          <Text>End:</Text>
+          <Text style={styles.dateText}>End:</Text>
           <Button
             onPress={handleToggleEndDatePicker}
             title={formatDate(endDate)}
@@ -241,7 +244,7 @@ export default function EventFormPage({ route, navigation }) {
           />
         )}
         <View style={styles.dates}>
-          <Text>Category:</Text>
+          <Text style={styles.dateText}>Category:</Text>
           {Platform.OS === "ios" ? (
             <Button onPress={handleToggleCategoryPicker} title={categoryName} />
           ) : (
@@ -291,14 +294,18 @@ const styles = StyleSheet.create({
   dates: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    width: 250,
+  },
+  dateText: {
+    fontSize: 20,
   },
   textInput: {
     borderWidth: 1,
     borderColor: "black",
     fontSize: 20,
-    marginBottom: 20,
-    paddingLeft: 10,
-    width: 200,
-    height: 40,
+    padding: 10,
+    width: 300,
+    margin: 12,
   },
 });
