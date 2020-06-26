@@ -46,7 +46,9 @@ export default function EventFormPage({ route, navigation }) {
       if (category.length > 0) {
         setCategoryId(category);
         const filtered = categories.filter((cat) => cat.key == category);
-        setCategoryName(filtered[0].data.title);
+        setCategoryName(
+          filtered.length ? filtered[0].data.title : "Study Session"
+        );
       }
     }
   }, [event]);
