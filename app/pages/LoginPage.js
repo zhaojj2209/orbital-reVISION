@@ -90,11 +90,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "black",
     fontSize: 20,
-    marginBottom: 20,
-    paddingLeft: 10,
-    width: 200,
-    height: 40,
+    padding: 10,
+    width: 300,
+    margin: 12,
   },
+
   button: {
     marginTop: 42,
   },

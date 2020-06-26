@@ -14,6 +14,7 @@ import {
 
 import Colours from "../constants/Colours";
 import firebase from "../FirebaseDb";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default function CategoryFormPage({ route, navigation }) {
   const [title, setTitle] = useState("");
@@ -85,15 +86,23 @@ export default function CategoryFormPage({ route, navigation }) {
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
         <TextInput
+          multiline
           style={styles.textInput}
           placeholder="Event"
           onChangeText={handleUpdateTitle}
           value={title}
         />
         <View style={styles.colour}>
-          <Text>Colour:</Text>
+          <Text style={styles.colourText}>Colour:</Text>
           {Platform.OS === "ios" ? (
-            <Button onPress={handleTogglePicker} title={colour} />
+            <TouchableOpacity onPress={handleTogglePicker}>
+              <View
+                style={StyleSheet.flatten([
+                  styles.colourBox,
+                  { backgroundColor: colour },
+                ])}
+              />
+            </TouchableOpacity>
           ) : (
             <Text>{colour}</Text>
           )}
@@ -101,19 +110,32 @@ export default function CategoryFormPage({ route, navigation }) {
         {showPicker && (
           <Picker
             selectedValue={colour}
-            style={{ width: 150 }}
+            style={{ width: 300 }}
             onValueChange={(itemValue, itemIndex) => setColour(itemValue)}
+            itemStyle={styles.pickerText}
           >
-            <Picker.Item label="One" value={Colours.one} />
-            <Picker.Item label="Two" value={Colours.two} />
-            <Picker.Item label="Three" value={Colours.three} />
-            <Picker.Item label="Four" value={Colours.four} />
-            <Picker.Item label="Five" value={Colours.five} />
-            <Picker.Item label="Six" value={Colours.six} />
-            <Picker.Item label="Seven" value={Colours.seven} />
-            <Picker.Item label="Eight" value={Colours.eight} />
-            <Picker.Item label="Nine" value={Colours.nine} />
-            <Picker.Item label="Ten" value={Colours.ten} />
+            <Picker.Item label="██" value={Colours.one} color={Colours.one} />
+            <Picker.Item label="██" value={Colours.two} color={Colours.two} />
+            <Picker.Item
+              label="██"
+              value={Colours.three}
+              color={Colours.three}
+            />
+            <Picker.Item label="██" value={Colours.four} color={Colours.four} />
+            <Picker.Item label="██" value={Colours.five} color={Colours.five} />
+            <Picker.Item label="██" value={Colours.six} color={Colours.six} />
+            <Picker.Item
+              label="██"
+              value={Colours.seven}
+              color={Colours.seven}
+            />
+            <Picker.Item
+              label="██"
+              value={Colours.eight}
+              color={Colours.eight}
+            />
+            <Picker.Item label="██" value={Colours.nine} color={Colours.nine} />
+            <Picker.Item label="██" value={Colours.ten} color={Colours.ten} />
           </Picker>
         )}
         <Button
@@ -142,14 +164,24 @@ const styles = StyleSheet.create({
   colour: {
     flexDirection: "row",
     alignItems: "center",
+    padding: 20,
+    justifyContent: "space-evenly",
   },
+  colourText: { fontSize: 18, padding: 25 },
+  colourBox: {
+    width: 74,
+    height: 50,
+    borderRadius: 10,
+  },
+
   textInput: {
     borderWidth: 1,
     borderColor: "black",
     fontSize: 20,
-    marginBottom: 20,
-    paddingLeft: 10,
-    width: 200,
-    height: 40,
+    padding: 10,
+    width: 300,
+  },
+  pickerText: {
+    fontSize: 40,
   },
 });
