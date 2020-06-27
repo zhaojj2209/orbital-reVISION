@@ -140,21 +140,7 @@ const styles = StyleSheet.create({
 
   title: { fontSize: 20, padding: 10 },
   deadline: { fontSize: 14, margin: 10 },
-  modal: { flex: 1, alignItems: "center" },
 
-  header: {
-    height: 60,
-    borderBottomWidth: 2,
-    fontWeight: "bold",
-    padding: 10,
-    width: Dimensions.get("screen").width,
-  },
-  headerText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-    textAlignVertical: "bottom",
-  },
   details: {
     padding: 40,
   },

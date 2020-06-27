@@ -59,6 +59,7 @@ export default function LoginPage({ navigation }) {
         <TextInput
           style={styles.textInput}
           placeholder="Password"
+          secureTextEntry
           onChangeText={handleUpdatePassword}
           value={password}
         />
@@ -93,6 +94,7 @@ const styles = StyleSheet.create({
     padding: 10,
     width: 300,
     margin: 12,
+    borderRadius: 0,
   },
 
   button: {

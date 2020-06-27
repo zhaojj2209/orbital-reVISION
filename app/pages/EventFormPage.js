@@ -254,7 +254,7 @@ export default function EventFormPage({ route, navigation }) {
         {showCategoryPicker && (
           <Picker
             selectedValue={categoryId}
-            style={{ width: 150 }}
+            style={{ width: 350 }}
             onValueChange={(itemValue, itemIndex) => {
               setCategoryId(itemValue);
               setCategoryName(
