@@ -89,6 +89,7 @@ export default function RegisterPage({ navigation }) {
           value={email}
         />
         <TextInput
+          secureTextEntry
           style={styles.textInput}
           placeholder="Password"
           onChangeText={handleUpdatePassword}

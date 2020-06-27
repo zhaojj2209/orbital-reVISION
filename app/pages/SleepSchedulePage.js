@@ -77,15 +77,16 @@ export default function SleepSchedulePage({ route, navigation }) {
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
-        <Text>Please set your sleep schedule below!</Text>
+        <Text style={styles.text}>Please set your sleep schedule below!</Text>
         <View style={styles.dates}>
-          <Text>Wake-up time: </Text>
+          <Text style={styles.dateText}>Wake-up time: </Text>
           <Button
             onPress={handleToggleShowWakeTimePicker}
             title={formatTime(wakeTime)}
           />
         </View>
         <DateTimePickerModal
+          headerTextIOS="Pick a time"
           isVisible={showWakeTimePicker}
           mode="time"
           minuteInterval={30}
@@ -97,13 +98,14 @@ export default function SleepSchedulePage({ route, navigation }) {
           date={wakeTime}
         />
         <View style={styles.dates}>
-          <Text>Sleep time: </Text>
+          <Text style={styles.dateText}>Sleep time: </Text>
           <Button
             onPress={handleToggleShowSleepTimePicker}
             title={formatTime(sleepTime)}
           />
         </View>
         <DateTimePickerModal
+          headerTextIOS="Pick a time"
           isVisible={showSleepTimePicker}
           mode="time"
           minuteInterval={30}
@@ -126,17 +128,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  text: { fontSize: 18, marginBottom: 10 },
   dates: {
     flexDirection: "row",
     alignItems: "center",
   },
-  textInput: {
-    borderWidth: 1,
-    borderColor: "black",
+  dateText: {
     fontSize: 20,
-    marginBottom: 20,
-    paddingLeft: 10,
-    width: 200,
-    height: 40,
   },
 });
