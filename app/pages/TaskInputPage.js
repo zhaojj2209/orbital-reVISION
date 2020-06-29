@@ -15,6 +15,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import firebase from "../FirebaseDb";
 import { newRoundedDate, formatDateDisplay } from "../constants/DateFormats";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default function TaskInputPage({ route, navigation }) {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -182,9 +183,11 @@ export default function TaskInputPage({ route, navigation }) {
               </Text>
               <View style={styles.dates}>
                 <Text style={styles.dateText}>Deadline: </Text>
-                <Text onPress={showDatePicker} style={styles.dateText}>
-                  {formatDateDisplay(values.deadline)}
-                </Text>
+                <TouchableOpacity onPress={showDatePicker}>
+                  <Text style={styles.dateText}>
+                    {formatDateDisplay(values.deadline)}
+                  </Text>
+                </TouchableOpacity>
                 <DateTimePickerModal
                   isVisible={isDatePickerVisible}
                   mode="datetime"

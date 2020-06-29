@@ -10,7 +10,7 @@ export const formatDateDisplay = (date) =>
   formatDate(date) + "   " + formatTime(date);
 
 export const newRoundedDate = () => {
-  const coeff = getMinutes(5);
+  const coeff = getMinutes(15);
   const date = new Date();
   return new Date(Math.round(date.getTime() / coeff) * coeff);
 };

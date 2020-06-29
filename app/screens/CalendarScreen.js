@@ -145,7 +145,7 @@ export default function CalendarScreen({ route, navigation }) {
             }
             if (
               dayEnd > nextSessionTime &&
-              dayEnd - nextSessionTime > minimumSessionTime
+              dayEnd - nextSessionTime >= minimumSessionTime
             ) {
               firebase
                 .firestore()
