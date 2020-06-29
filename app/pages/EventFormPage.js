@@ -195,13 +195,22 @@ export default function EventFormPage({ route, navigation }) {
             onValueChange={(itemValue, itemIndex) => {
               setCategoryId(itemValue);
               setCategoryName(
-                itemIndex == 0 ? "None" : categories[itemIndex - 1].data.title
+                itemIndex == 0
+                  ? "None"
+                  : itemIndex == 1
+                  ? "Study Session"
+                  : categories[itemIndex - 2].data.title
               );
             }}
           >
             <Picker.Item label="None" value="" />
+            <Picker.Item label="Study Session" value="Study Session" />
             {categories.map((cat) => (
-              <Picker.Item label={cat.data.title} value={cat.key} />
+              <Picker.Item
+                label={cat.data.title}
+                value={cat.key}
+                key={cat.key}
+              />
             ))}
           </Picker>
         )}
