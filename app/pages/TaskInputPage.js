@@ -12,9 +12,9 @@ import {
 import { Formik } from "formik";
 import * as yup from "yup";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import moment from "moment";
 
 import firebase from "../FirebaseDb";
+import { newRoundedDate, formatDateDisplay } from "../constants/DateFormats";
 
 export default function TaskInputPage({ route, navigation }) {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -48,6 +48,7 @@ export default function TaskInputPage({ route, navigation }) {
         return !isNaN(Number(val));
       }),
   });
+
   const handleCreateTask = (values) =>
     firebase
       .firestore()
@@ -100,6 +101,7 @@ export default function TaskInputPage({ route, navigation }) {
         ])
       )
       .catch((err) => console.error(err));
+
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
@@ -111,7 +113,7 @@ export default function TaskInputPage({ route, navigation }) {
                   description: "",
                   importance: "",
                   expectedCompletionTime: "",
-                  deadline: moment().format("MMMM Do YYYY, h:mm a"),
+                  deadline: newRoundedDate(),
                 }
               : {
                   title: task.data.title,
@@ -181,24 +183,18 @@ export default function TaskInputPage({ route, navigation }) {
               <View style={styles.dates}>
                 <Text style={styles.dateText}>Deadline: </Text>
                 <Text onPress={showDatePicker} style={styles.dateText}>
-                  {values.deadline}
+                  {formatDateDisplay(values.deadline)}
                 </Text>
                 <DateTimePickerModal
                   isVisible={isDatePickerVisible}
                   mode="datetime"
                   minuteInterval={15}
                   onConfirm={(deadline) => {
-                    setFieldValue(
-                      "deadline",
-                      moment(deadline).format("MMMM Do YYYY, h:mm a")
-                    );
+                    setFieldValue("deadline", deadline);
                     hideDatePicker();
                   }}
                   onCancel={hideDatePicker}
-                  date={moment(
-                    values.deadline,
-                    "MMMM Do YYYY, h:mm a"
-                  ).toDate()}
+                  date={values.deadline}
                 />
               </View>
               <Button title="Submit" onPress={handleSubmit} />

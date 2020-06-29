@@ -9,7 +9,7 @@ import {
 } from "react-native";
 
 import firebase from "../FirebaseDb";
-import { formatDate, formatTime } from "../constants/DateFormats";
+import { formatDateDisplay } from "../constants/DateFormats";
 
 export default function EventDetailsPage({ route, navigation }) {
   const { userId, event, categories, onGoBack } = route.params;
@@ -36,10 +36,8 @@ export default function EventDetailsPage({ route, navigation }) {
       );
   };
 
-  const startDateString =
-    "Start: " + formatDate(startDate) + " " + formatTime(startDate);
-  const endDateString =
-    "End: " + formatDate(endDate) + " " + formatTime(endDate);
+  const startDateString = "Start: " + formatDateDisplay(startDate);
+  const endDateString = "End: " + formatDateDisplay(endDate);
 
   const categoryString = () => {
     const filtered = categories.filter((cat) => cat.key == category);

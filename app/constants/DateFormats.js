@@ -6,6 +6,9 @@ export const formatDate = (date) => moment(date).format("dddd, DD MMM");
 
 export const formatDateString = (date) => moment(date).format("YYYY-MM-DD");
 
+export const formatDateDisplay = (date) =>
+  formatDate(date) + "   " + formatTime(date);
+
 export const newRoundedDate = () => {
   const coeff = getMinutes(5);
   const date = new Date();

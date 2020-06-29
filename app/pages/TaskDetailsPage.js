@@ -7,7 +7,9 @@ import {
   Alert,
   SafeAreaView,
 } from "react-native";
+
 import firebase from "../FirebaseDb";
+import { formatDateDisplay } from "../constants/DateFormats";
 
 export default function TaskDetailsPage({ route, navigation }) {
   const { userId, item, getTasks } = route.params;
@@ -48,7 +50,9 @@ export default function TaskDetailsPage({ route, navigation }) {
           {" hours"}
         </Text>
 
-        <Text style={styles.detailsText}>Deadline: {item.data.deadline}</Text>
+        <Text style={styles.detailsText}>
+          Deadline: {formatDateDisplay(item.data.deadline)}
+        </Text>
       </View>
       <View style={styles.buttonRow}>
         <Button

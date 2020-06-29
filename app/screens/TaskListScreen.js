@@ -6,18 +6,15 @@ import {
   SafeAreaView,
   Button,
   FlatList,
-  Dimensions,
-  Modal,
-  Alert,
   TouchableOpacity,
 } from "react-native";
 import moment from "moment";
+import { formatDateDisplay } from "../constants/DateFormats";
 
 import firebase from "../FirebaseDb";
 
 export default function TaskListScreen({ route, navigation }) {
   const [tasks, setTasks] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const { userId } = route.params;
 
   useEffect(() => getTasks(), []);
@@ -26,7 +23,7 @@ export default function TaskListScreen({ route, navigation }) {
     let counter = 0;
 
     function taskColor(deadline) {
-      let date = moment(deadline, "MMMM Do YYYY, h:mm a");
+      let date = moment(deadline);
       if (date.isAfter(moment())) {
         while (date.isAfter(moment())) {
           counter += 1;
@@ -50,6 +47,7 @@ export default function TaskListScreen({ route, navigation }) {
       .collection("users")
       .doc(userId)
       .collection("tasks")
+      .orderBy("deadline")
       .get()
       .then((querySnapshot) => {
         const results = [];
@@ -62,25 +60,12 @@ export default function TaskListScreen({ route, navigation }) {
               description: data.description,
               importance: data.importance,
               expectedCompletionTime: data.expectedCompletionTime,
-              deadline: data.deadline,
+              deadline: data.deadline.toDate(),
             },
+            color: taskColor(data.deadline.toDate()),
           });
         });
-        const sortedResults = []
-          .concat(results)
-          .sort((taskOne, taskTwo) =>
-            moment(taskOne.data.deadline, "MMMM Do YYYY, h:mm a").isAfter(
-              moment(taskTwo.data.deadline, "MMMM Do YYYY, h:mm a")
-            )
-              ? 1
-              : -1
-          );
-        const coloredResults = sortedResults.map((item) => ({
-          ...item,
-          color: taskColor(item.data.deadline),
-        }));
-
-        setTasks(coloredResults);
+        setTasks(results);
       })
       .catch((err) => console.error(err));
   };
@@ -106,7 +91,9 @@ export default function TaskListScreen({ route, navigation }) {
                 ])}
               >
                 <Text style={styles.title}> {item.data.title}</Text>
-                <Text style={styles.deadline}> {item.data.deadline}</Text>
+                <Text style={styles.deadline}>
+                  {formatDateDisplay(item.data.deadline)}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
