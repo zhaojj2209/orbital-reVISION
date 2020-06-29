@@ -19,6 +19,7 @@ import {
   getMinutes,
   today,
 } from "../constants/DateFormats";
+import { categoryColours } from "../constants/Colours";
 
 export default function CalendarScreen({ route, navigation }) {
   const [events, setEvents] = useState([]);
@@ -97,8 +98,8 @@ export default function CalendarScreen({ route, navigation }) {
       backgroundColor: filtered.length
         ? filtered[0].data.colour
         : categoryId.length == 0
-        ? "#f9c2ff"
-        : "#ff6d01",
+        ? categoryColours.none
+        : categoryColours.studySession,
     };
   };
 

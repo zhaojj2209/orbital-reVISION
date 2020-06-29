@@ -9,9 +9,10 @@ import {
   TouchableOpacity,
 } from "react-native";
 import moment from "moment";
-import { formatDateDisplay } from "../constants/DateFormats";
 
 import firebase from "../FirebaseDb";
+import { formatDateDisplay } from "../constants/DateFormats";
+import { taskColours } from "../constants/Colours";
 
 export default function TaskListScreen({ route, navigation }) {
   const [tasks, setTasks] = useState(null);
@@ -30,16 +31,16 @@ export default function TaskListScreen({ route, navigation }) {
           date.subtract(1, "days");
         }
         return counter == 1
-          ? "#ee6969"
+          ? taskColours.one
           : counter == 2
-          ? "#f97c7c"
+          ? taskColours.two
           : counter == 3
-          ? "#fdaaaa"
+          ? taskColours.three
           : counter == 4
-          ? "#f4c1c1"
-          : "#fde0e0";
+          ? taskColours.four
+          : taskColours.five;
       } else {
-        return "red";
+        return taskColours.overdue;
       }
     }
     firebase
