@@ -100,17 +100,29 @@ export default function TaskListScreen({ route, navigation }) {
           </View>
         )}
       />
-      <Button
-        title="Add Tasks"
-        onPress={() => {
-          navigation.navigate("TaskInput", {
-            userId: userId,
-            onGoBack: getTasks,
-            isNewTask: true,
-            task: null,
-          });
-        }}
-      />
+      <View style={styles.buttonRow}>
+        <Button
+          title="Add Tasks"
+          onPress={() => {
+            navigation.navigate("TaskInput", {
+              userId: userId,
+              onGoBack: getTasks,
+              isNewTask: true,
+              task: null,
+            });
+          }}
+        />
+        <Button
+          title="Logout"
+          style={styles.button}
+          onPress={() =>
+            firebase
+              .auth()
+              .signOut()
+              .then(() => navigation.navigate("Login"))
+          }
+        />
+      </View>
     </SafeAreaView>
   );
 }

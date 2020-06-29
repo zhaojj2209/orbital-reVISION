@@ -169,12 +169,18 @@ export default function CategoryFormPage({ route, navigation }) {
         <Button
           title={isNewCategory ? "Create Category" : "Edit Category"}
           onPress={() => {
-            if (title.length && colour.length) {
+            if (title.length) {
               if (isNewCategory) {
                 handleCreateCategory();
               } else {
                 handleEditCategory();
               }
+            } else {
+              Alert.alert(
+                "Category cannot be saved!",
+                "Category title cannot be blank",
+                [{ text: "OK", onPress: () => {} }]
+              );
             }
           }}
         />

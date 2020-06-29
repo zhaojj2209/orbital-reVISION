@@ -223,6 +223,12 @@ export default function EventFormPage({ route, navigation }) {
               } else {
                 handleEditEvent();
               }
+            } else {
+              Alert.alert(
+                "Event cannot be saved!",
+                "Event title cannot be blank",
+                [{ text: "OK", onPress: () => {} }]
+              );
             }
           }}
         />
