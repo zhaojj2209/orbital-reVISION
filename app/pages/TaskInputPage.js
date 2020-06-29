@@ -12,9 +12,9 @@ import {
 import { Formik } from "formik";
 import * as yup from "yup";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import firebase from "../FirebaseDb";
-
 import moment from "moment";
+
+import firebase from "../FirebaseDb";
 
 export default function TaskInputPage({ route, navigation }) {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);

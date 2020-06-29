@@ -1,9 +1,9 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 
+import TabsContainer from "./TabsContainer";
 import SleepSchedulePage from "../pages/SleepSchedulePage";
 import firebase from "../FirebaseDb";
-import TabsContainer from "./TabsContainer";
 
 const Stack = createStackNavigator();
 

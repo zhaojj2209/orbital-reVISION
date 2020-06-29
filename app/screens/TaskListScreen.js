@@ -9,10 +9,11 @@ import {
   Dimensions,
   Modal,
   Alert,
+  TouchableOpacity,
 } from "react-native";
-import firebase from "../FirebaseDb";
 import moment from "moment";
-import { TouchableOpacity } from "react-native-gesture-handler";
+
+import firebase from "../FirebaseDb";
 
 export default function TaskListScreen({ route, navigation }) {
   const [tasks, setTasks] = useState(null);

@@ -5,6 +5,7 @@ import {
   TextInput,
   StyleSheet,
   Button,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
@@ -14,7 +15,6 @@ import {
 
 import Colours from "../constants/Colours";
 import firebase from "../FirebaseDb";
-import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default function CategoryFormPage({ route, navigation }) {
   const [title, setTitle] = useState("");
