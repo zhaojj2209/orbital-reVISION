@@ -25,8 +25,12 @@ export default function TaskListScreen({ route, navigation }) {
     let counter = 0;
 
     function taskColor(deadline) {
-      if (moment(deadline, "MMMM Do YYYY, h:mm a").isAfter(moment())) {
-        counter = counter + 1;
+      let date = moment(deadline, "MMMM Do YYYY, h:mm a");
+      if (date.isAfter(moment())) {
+        while (date.isAfter(moment())) {
+          counter += 1;
+          date.subtract(1, "days");
+        }
         return counter == 1
           ? "#ee6969"
           : counter == 2
