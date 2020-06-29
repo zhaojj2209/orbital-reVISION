@@ -31,14 +31,15 @@ export default function LoginPage({ navigation }) {
     firebase
       .auth()
       .signInWithEmailAndPassword(email, password)
-      .then((res) =>
+      .then((res) => {
+        setPassword("");
         Alert.alert("Login Successful", "", [
           {
             text: "OK",
             onPress: () => navigation.navigate("Home"),
           },
-        ])
-      )
+        ]);
+      })
       .catch((err) =>
         Alert.alert(err.message, "", [{ text: "OK", onPress: () => {} }])
       );
