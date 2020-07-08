@@ -62,22 +62,7 @@ export default function CategoryList({ route, navigation }) {
           .get()
           .then((querySnapshot) => {
             querySnapshot.docs.forEach((documentSnapshot) => {
-              const data = documentSnapshot.data();
-              const id = documentSnapshot.id;
-              firebase
-                .firestore()
-                .collection("users")
-                .doc(userId)
-                .collection("events")
-                .doc(id)
-                .set({
-                  title: data.title,
-                  description: data.description,
-                  startDate: data.startDate.toDate(),
-                  endDate: data.endDate.toDate(),
-                  category: "",
-                })
-                .catch((err) => console.error(err));
+              documentSnapshot.ref.delete();
             });
           })
           .catch((err) => console.error(err));
@@ -125,16 +110,20 @@ export default function CategoryList({ route, navigation }) {
                 title="Delete"
                 style={styles.button}
                 onPress={() =>
-                  Alert.alert("Confirm delete?", "Event: " + item.data.title, [
-                    {
-                      text: "OK",
-                      onPress: () => handleDeleteCategory(item.key),
-                    },
-                    {
-                      text: "Cancel",
-                      onPress: () => {},
-                    },
-                  ])
+                  Alert.alert(
+                    "Confirm delete?",
+                    "This will delete all events in the category as well!",
+                    [
+                      {
+                        text: "OK",
+                        onPress: () => handleDeleteCategory(item.key),
+                      },
+                      {
+                        text: "Cancel",
+                        onPress: () => {},
+                      },
+                    ]
+                  )
                 }
               />
             </View>
