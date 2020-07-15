@@ -60,6 +60,10 @@ export default function CalendarScreen({ route, navigation }) {
               startDate: data.startDate.toDate(),
               endDate: data.endDate.toDate(),
               category: data.category,
+              repeat: data.repeat,
+              repeatId: data.repeatId,
+              repeatDate:
+                data.repeatDate == null ? null : data.repeatDate.toDate(),
             },
           });
         });
@@ -139,6 +143,9 @@ export default function CalendarScreen({ route, navigation }) {
                     startDate: new Date(sessionStart),
                     endDate: new Date(sessionEnd),
                     category: "Study Session",
+                    repeat: "None",
+                    repeatId: "",
+                    repeatDate: null,
                   })
                   .catch((err) => console.error(err));
               }
@@ -158,6 +165,9 @@ export default function CalendarScreen({ route, navigation }) {
                   startDate: new Date(nextSessionTime),
                   endDate: new Date(dayEnd),
                   category: "Study Session",
+                  repeat: "None",
+                  repeatId: "",
+                  repeatDate: null,
                 })
                 .catch((err) => console.error(err));
             }
