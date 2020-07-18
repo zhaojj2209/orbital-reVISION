@@ -8,18 +8,32 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
+  Picker,
 } from "react-native";
 import { Formik } from "formik";
 import * as yup from "yup";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import firebase from "../FirebaseDb";
-import { newRoundedDate, formatDateDisplay } from "../constants/DateFormats";
+import {
+  newRoundedDate,
+  formatDate,
+  formatDateString,
+  formatDateDisplay,
+  today,
+} from "../constants/DateFormats";
 import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default function TaskInputPage({ route, navigation }) {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [showRepeatPicker, setShowRepeatPicker] = useState(false);
+  const [showRepeatDatePicker, setShowRepeatDatePicker] = useState(false);
   const { userId, onGoBack, isNewTask, task } = route.params;
+  const tasksDb = firebase
+    .firestore()
+    .collection("users")
+    .doc(userId)
+    .collection("tasks");
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -51,17 +65,16 @@ export default function TaskInputPage({ route, navigation }) {
   });
 
   const handleCreateTask = (values) =>
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("tasks")
+    tasksDb
       .add({
         title: values.title,
         description: values.description,
         importance: values.importance,
         expectedCompletionTime: values.expectedCompletionTime,
         deadline: values.deadline,
+        repeat: values.repeat,
+        repeatDate:
+          values.repeat.slice(-8) != "until..." ? null : values.repeatDate,
       })
       .then(() =>
         Alert.alert("Task Created", "", [
@@ -77,11 +90,7 @@ export default function TaskInputPage({ route, navigation }) {
       .catch((err) => console.error(err));
 
   const handleEditTask = (values) =>
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("tasks")
+    tasksDb
       .doc(task.key)
       .set({
         title: values.title,
@@ -89,6 +98,9 @@ export default function TaskInputPage({ route, navigation }) {
         importance: values.importance,
         expectedCompletionTime: values.expectedCompletionTime,
         deadline: values.deadline,
+        repeat: values.repeat,
+        repeatDate:
+          values.repeat.slice(-8) != "until..." ? null : values.repeatDate,
       })
       .then(() =>
         Alert.alert("Task Edited", "", [
@@ -103,6 +115,27 @@ export default function TaskInputPage({ route, navigation }) {
       )
       .catch((err) => console.error(err));
 
+  const handleShowDatePicker = () => {
+    Keyboard.dismiss();
+    setShowRepeatPicker(false);
+    setShowRepeatDatePicker(false);
+    showDatePicker();
+  };
+
+  const handleToggleRepeatPicker = () => {
+    Keyboard.dismiss();
+    hideDatePicker();
+    setShowRepeatDatePicker(false);
+    setShowRepeatPicker(!showRepeatPicker);
+  };
+
+  const toggleRepeatDatePicker = () => {
+    Keyboard.dismiss();
+    hideDatePicker();
+    setShowRepeatPicker(false);
+    setShowRepeatDatePicker(true);
+  };
+
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
@@ -115,6 +148,8 @@ export default function TaskInputPage({ route, navigation }) {
                   importance: "",
                   expectedCompletionTime: "",
                   deadline: newRoundedDate(),
+                  repeat: "None",
+                  repeatDate: today,
                 }
               : {
                   title: task.data.title,
@@ -122,6 +157,14 @@ export default function TaskInputPage({ route, navigation }) {
                   importance: task.data.importance,
                   expectedCompletionTime: task.data.expectedCompletionTime,
                   deadline: task.data.deadline,
+                  repeat: task.data.repeat,
+                  repeatDate:
+                    task.data.repeatDate == null
+                      ? new Date(
+                          formatDateString(task.data.deadline) +
+                            "T00:00:00.000+08:00"
+                        )
+                      : task.data.repeatDate,
                 }
           }
           validationSchema={inputSchema}
@@ -183,7 +226,7 @@ export default function TaskInputPage({ route, navigation }) {
               </Text>
               <View style={styles.dates}>
                 <Text style={styles.dateText}>Deadline: </Text>
-                <TouchableOpacity onPress={showDatePicker}>
+                <TouchableOpacity onPress={handleShowDatePicker}>
                   <Text style={styles.dateText}>
                     {formatDateDisplay(values.deadline)}
                   </Text>
@@ -200,6 +243,55 @@ export default function TaskInputPage({ route, navigation }) {
                   date={values.deadline}
                 />
               </View>
+              <View style={styles.dates}>
+                <Text style={styles.dateText}>Repeat:</Text>
+                <TouchableOpacity onPress={handleToggleRepeatPicker}>
+                  <Text style={styles.dateText}>{values.repeat}</Text>
+                </TouchableOpacity>
+              </View>
+              {values.repeat.slice(-8) == "until..." && (
+                <View style={styles.dates}>
+                  <Text style={styles.dateText}>Repeat until:</Text>
+                  <TouchableOpacity onPress={toggleRepeatDatePicker}>
+                    <Text style={styles.dateText}>
+                      {formatDate(values.repeatDate)}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              <DateTimePickerModal
+                isVisible={showRepeatDatePicker}
+                mode="date"
+                onConfirm={(repeatDate) => {
+                  setFieldValue("repeatDate", repeatDate);
+                  setShowRepeatDatePicker(false);
+                }}
+                onCancel={() => setShowRepeatDatePicker(false)}
+                date={values.repeatDate}
+              />
+              {showRepeatPicker && (
+                <Picker
+                  selectedValue={values.repeat}
+                  style={{ width: 350 }}
+                  onValueChange={(itemValue, itemIndex) =>
+                    setFieldValue("repeat", itemValue)
+                  }
+                >
+                  <Picker.Item label="None" value="None" />
+                  <Picker.Item label="Daily" value="Daily" />
+                  <Picker.Item label="Weekly" value="Weekly" />
+                  <Picker.Item label="Monthly" value="Monthly" />
+                  <Picker.Item label="Daily until..." value="Daily until..." />
+                  <Picker.Item
+                    label="Weekly until..."
+                    value="Weekly until..."
+                  />
+                  <Picker.Item
+                    label="Monthly until..."
+                    value="Monthly until..."
+                  />
+                </Picker>
+              )}
               <Button title="Submit" onPress={handleSubmit} />
             </View>
           )}

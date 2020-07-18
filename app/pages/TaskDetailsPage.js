@@ -7,51 +7,96 @@ import {
   Alert,
   SafeAreaView,
 } from "react-native";
+import moment from "moment";
 
 import firebase from "../FirebaseDb";
-import { formatDateDisplay } from "../constants/DateFormats";
+import { formatDate, formatDateDisplay } from "../constants/DateFormats";
 
 export default function TaskDetailsPage({ route, navigation }) {
   const { userId, item, getTasks } = route.params;
+  const {
+    title,
+    description,
+    deadline,
+    importance,
+    expectedCompletionTime,
+    repeat,
+    repeatDate,
+  } = item.data;
+  const taskDoc = firebase
+    .firestore()
+    .collection("users")
+    .doc(userId)
+    .collection("tasks")
+    .doc(item.key);
 
-  const handleDeleteTask = (key) => {
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("tasks")
-      .doc(key)
-      .delete()
-      .then(
-        Alert.alert("Task deleted", "", [
-          {
-            text: "Ok",
-            onPress: () => {
-              getTasks();
-              navigation.navigate("TaskList");
-            },
+  const handleRepeat = () => {
+    const interval =
+      repeat.slice(0, 5) == "Daily"
+        ? "days"
+        : repeat.slice(0, 6) == "Weekly"
+        ? "weeks"
+        : repeat.slice(0, 7) == "Monthly"
+        ? "months"
+        : "";
+    if (interval.length) {
+      const nextDeadline = moment(deadline).add(1, interval);
+      if (repeatDate != null && nextDeadline.isAfter(moment(repeatDate))) {
+        handleDeleteTask();
+      } else {
+        handleSetNextDeadline(nextDeadline.toDate());
+      }
+    } else {
+      handleDeleteTask();
+    }
+  };
+
+  const handleSetNextDeadline = (nextDeadline) => {
+    taskDoc.update({ deadline: nextDeadline }).then(
+      Alert.alert("Task deleted", "", [
+        {
+          text: "Ok",
+          onPress: () => {
+            getTasks();
+            navigation.navigate("TaskList");
           },
-        ])
-      );
+        },
+      ])
+    );
+  };
+
+  const handleDeleteTask = () => {
+    taskDoc.delete().then(
+      Alert.alert("Task deleted", "", [
+        {
+          text: "Ok",
+          onPress: () => {
+            getTasks();
+            navigation.navigate("TaskList");
+          },
+        },
+      ])
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.details}>
-        <Text style={styles.detailsText}>Title: {item.data.title}</Text>
+        <Text style={styles.detailsText}>Title: {title}</Text>
+        <Text style={styles.detailsText}>Description: {description}</Text>
+        <Text style={styles.detailsText}>Importance: {importance}</Text>
         <Text style={styles.detailsText}>
-          Description: {item.data.description}
-        </Text>
-        <Text style={styles.detailsText}>
-          Importance: {item.data.importance}
-        </Text>
-        <Text style={styles.detailsText}>
-          Expected Completion Time: {item.data.expectedCompletionTime}
+          Expected Completion Time: {expectedCompletionTime}
           {" hours"}
         </Text>
-
         <Text style={styles.detailsText}>
-          Deadline: {formatDateDisplay(item.data.deadline)}
+          Deadline: {formatDateDisplay(deadline)}
+        </Text>
+        <Text style={styles.detailsText}>
+          Repeat:{" "}
+          {repeat.slice(-8) == "until..."
+            ? repeat.slice(0, repeat.length - 3) + " " + formatDate(repeatDate)
+            : repeat}
         </Text>
       </View>
       <View style={styles.buttonRow}>
@@ -69,11 +114,11 @@ export default function TaskDetailsPage({ route, navigation }) {
         <Button
           title="Completed"
           onPress={() =>
-            Alert.alert("Confirm delete?", "Task: " + item.data.title, [
+            Alert.alert("Confirm delete?", "Task: " + title, [
               {
                 text: "Yes",
                 onPress: () => {
-                  handleDeleteTask(item.key);
+                  handleRepeat();
                 },
               },
               { text: "No", onPress: () => {} },

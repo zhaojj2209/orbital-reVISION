@@ -62,6 +62,9 @@ export default function TaskListScreen({ route, navigation }) {
               importance: data.importance,
               expectedCompletionTime: data.expectedCompletionTime,
               deadline: data.deadline.toDate(),
+              repeat: data.repeat,
+              repeatDate:
+                data.repeatDate == null ? null : data.repeatDate.toDate(),
             },
             color: taskColor(data.deadline.toDate()),
           });
