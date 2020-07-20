@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import moment from "moment";
+import { useIsFocused } from "@react-navigation/native";
 
 import firebase from "../FirebaseDb";
 import { formatDateDisplay } from "../constants/DateFormats";
@@ -17,8 +18,9 @@ import { taskColours } from "../constants/Colours";
 export default function TaskListScreen({ route, navigation }) {
   const [tasks, setTasks] = useState(null);
   const { userId } = route.params;
+  const isFocused = useIsFocused();
 
-  useEffect(() => getTasks(), []);
+  useEffect(() => getTasks(), [isFocused]);
 
   const getTasks = () => {
     let counter = 0;

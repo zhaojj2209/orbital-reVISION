@@ -12,7 +12,7 @@ import firebase from "../FirebaseDb";
 import { formatDateDisplay, formatDate } from "../constants/DateFormats";
 
 export default function EventDetailsPage({ route, navigation }) {
-  const { userId, event, categories, onGoBack } = route.params;
+  const { userId, event, categories } = route.params;
   const {
     title,
     description,
@@ -36,10 +36,7 @@ export default function EventDetailsPage({ route, navigation }) {
         Alert.alert("Event Deleted", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              navigation.navigate("Calendar");
-            },
+            onPress: () => navigation.navigate("Calendar"),
           },
         ])
       );
@@ -62,10 +59,7 @@ export default function EventDetailsPage({ route, navigation }) {
         Alert.alert("Event Deleted", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              navigation.navigate("Calendar");
-            },
+            onPress: () => navigation.navigate("Calendar"),
           },
         ])
       );
@@ -110,7 +104,6 @@ export default function EventDetailsPage({ route, navigation }) {
               isNewEvent: false,
               event: event,
               categories: categories,
-              onGoBack: onGoBack,
             })
           }
         />

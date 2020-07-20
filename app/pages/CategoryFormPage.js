@@ -21,7 +21,7 @@ export default function CategoryFormPage({ route, navigation }) {
   const [colour, setColour] = useState(categoryColours.one);
   const [showPicker, setShowPicker] = useState(Platform.OS === "android");
 
-  const { userId, isNewCategory, category, onGoBack } = route.params;
+  const { userId, isNewCategory, category } = route.params;
 
   useEffect(() => {
     if (!isNewCategory) {
@@ -45,10 +45,7 @@ export default function CategoryFormPage({ route, navigation }) {
         Alert.alert("Category Created", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              navigation.navigate("CategoryList");
-            },
+            onPress: () => navigation.navigate("CategoryList"),
           },
         ])
       )
@@ -69,10 +66,7 @@ export default function CategoryFormPage({ route, navigation }) {
         Alert.alert("Category Edited Successfully", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              navigation.navigate("CategoryList");
-            },
+            onPress: () => navigation.navigate("CategoryList"),
           },
         ])
       )
@@ -80,7 +74,10 @@ export default function CategoryFormPage({ route, navigation }) {
 
   const handleUpdateTitle = (title) => setTitle(title);
 
-  const handleTogglePicker = () => setShowPicker(!showPicker);
+  const handleTogglePicker = () => {
+    Keyboard.dismiss();
+    setShowPicker(!showPicker);
+  };
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>

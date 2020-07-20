@@ -38,15 +38,25 @@ export default function EventFormPage({ route, navigation }) {
   const [repeatDate, setRepeatDate] = useState(today);
   const [showRepeatPicker, setShowRepeatPicker] = useState(false);
   const [showRepeatDatePicker, setShowRepeatDatePicker] = useState(false);
+  const [taskId, setTaskId] = useState(null);
+  const [createTask, setCreateTask] = useState(false);
+  const [importance, setImportance] = useState("");
+  const [expectedCompletionTime, setExpectedCompletionTime] = useState("");
 
-  const { userId, isNewEvent, event, categories, onGoBack } = route.params;
-  const prevRepeatStatus = event.data.repeat;
+  const { userId, isNewEvent, event, categories } = route.params;
+  const prevRepeatStatus = isNewEvent ? null : event.data.repeat;
 
   const eventsDb = firebase
     .firestore()
     .collection("users")
     .doc(userId)
     .collection("events");
+
+  const tasksDb = firebase
+    .firestore()
+    .collection("users")
+    .doc(userId)
+    .collection("tasks");
 
   useEffect(() => {
     if (!isNewEvent) {
@@ -59,6 +69,7 @@ export default function EventFormPage({ route, navigation }) {
         repeat,
         repeatId,
         repeatDate,
+        taskId,
       } = event.data;
       setTitle(title);
       setDescription(description);
@@ -67,6 +78,17 @@ export default function EventFormPage({ route, navigation }) {
       setRepeat(repeat);
       setRepeatId(repeatId);
       setRepeatDate(repeatDate);
+      setTaskId(taskId);
+      if (taskId != null) {
+        setCreateTask(true);
+        tasksDb
+          .doc(taskId)
+          .get()
+          .then((doc) => {
+            setImportance(doc.data().importance);
+            setExpectedCompletionTime(doc.data().expectedCompletionTime);
+          });
+      }
       if (category.length > 0) {
         setCategoryId(category);
         const filtered = categories.filter((cat) => cat.key == category);
@@ -96,23 +118,30 @@ export default function EventFormPage({ route, navigation }) {
           repeat: repeat,
           repeatId: "",
           repeatDate: null,
+          taskId: taskId,
         })
         .then((doc) => {
           if (repeat != "None") {
             setRepeatId(doc.id);
-            eventsDb.doc(doc.id).update({
-              repeatId: doc.id,
-              repeatDate: repeatDate,
-            });
-            createRepeatedEvents(doc.id);
+            eventsDb
+              .doc(doc.id)
+              .update({
+                repeatId: doc.id,
+                repeatDate: repeatDate,
+              })
+              .then(() => {
+                createRepeatedEvents(doc.id);
+                if (createTask) {
+                  handleCreateTask(doc.id);
+                }
+              });
+          } else if (createTask) {
+            handleCreateTask(doc.id);
           }
           Alert.alert("Event Created", "", [
             {
               text: "OK",
-              onPress: () => {
-                onGoBack();
-                navigation.navigate("Calendar");
-              },
+              onPress: () => navigation.navigate("Calendar"),
             },
           ]);
         })
@@ -120,8 +149,25 @@ export default function EventFormPage({ route, navigation }) {
     }
   };
 
+  const handleCreateTask = (id) =>
+    tasksDb
+      .add({
+        title: title,
+        description: description,
+        importance: importance,
+        expectedCompletionTime: expectedCompletionTime,
+        deadline: startDate,
+        repeat: repeat,
+        repeatDate: repeat == "None" ? null : repeatDate,
+      })
+      .then((doc) => {
+        eventsDb.doc(id).update({
+          taskId: doc.id,
+        });
+      })
+      .catch((err) => console.error(err));
+
   const handleEditEvent = () => {
-    console.log(prevRepeatStatus);
     if (startDate >= endDate) {
       Alert.alert("Event duration invalid!", "", [
         {
@@ -171,27 +217,57 @@ export default function EventFormPage({ route, navigation }) {
         repeat: repeat,
         repeatId: "",
         repeatDate: null,
+        taskId: taskId,
       })
       .then(() => {
         if (repeat != "None") {
           setRepeatId(event.key);
-          eventsDb.doc(event.key).update({
-            repeatId: event.key,
-            repeatDate: repeatDate,
-          });
-          createRepeatedEvents(event.key);
+          eventsDb
+            .doc(event.key)
+            .update({
+              repeatId: event.key,
+              repeatDate: repeatDate,
+            })
+            .then(() => {
+              createRepeatedEvents(event.key);
+              editTask();
+            });
+        } else {
+          editTask();
         }
         Alert.alert("Event Edited Successfully", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              navigation.navigate("Calendar");
-            },
+            onPress: () => navigation.navigate("Calendar"),
           },
         ]);
       })
       .catch((err) => console.error(err));
+  };
+
+  const editTask = () => {
+    if (createTask && taskId == null) {
+      handleCreateTask(event.key);
+    } else if (!createTask && taskId != null) {
+      tasksDb
+        .doc(taskId)
+        .delete()
+        .then(() => {
+          eventsDb.doc(event.key).update({
+            taskId: null,
+          });
+        });
+    } else if (createTask && taskId != null) {
+      tasksDb.doc(taskId).set({
+        title: title,
+        description: description,
+        importance: importance,
+        expectedCompletionTime: expectedCompletionTime,
+        deadline: startDate,
+        repeat: repeat,
+        repeatDate: repeat == "None" ? null : repeatDate,
+      });
+    }
   };
 
   const createRepeatedEvents = (repeatId) => {
@@ -374,6 +450,34 @@ export default function EventFormPage({ route, navigation }) {
             <Picker.Item label="Weekly" value="Weekly" />
             <Picker.Item label="Monthly" value="Monthly" />
           </Picker>
+        )}
+        <View style={styles.dates}>
+          <Text style={styles.dateText}>Create task for this event?</Text>
+          <TouchableOpacity
+            onPress={() =>
+              createTask ? setCreateTask(false) : setCreateTask(true)
+            }
+          >
+            <Text style={styles.dateText}>{createTask ? "Yes" : "No"}</Text>
+          </TouchableOpacity>
+        </View>
+        {createTask && (
+          <TextInput
+            style={styles.textInput}
+            placeholder="Importance (1 - 5)"
+            onChangeText={setImportance}
+            value={importance}
+            keyboardType="numeric"
+          />
+        )}
+        {createTask && (
+          <TextInput
+            style={styles.textInput}
+            placeholder="Expected Completion Time (hours)"
+            onChangeText={setExpectedCompletionTime}
+            value={expectedCompletionTime}
+            keyboardType="numeric"
+          />
         )}
         <Button
           title={isNewEvent ? "Create Event" : "Edit Event"}

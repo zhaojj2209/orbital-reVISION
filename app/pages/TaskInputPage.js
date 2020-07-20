@@ -211,7 +211,6 @@ export default function TaskInputPage({ route, navigation }) {
               <Text style={styles.errorText}>
                 {touched.importance && errors.importance}
               </Text>
-
               <TextInput
                 style={styles.textInput}
                 placeholder="Expected Completion Time (hours)"

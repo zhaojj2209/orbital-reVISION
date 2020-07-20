@@ -13,7 +13,7 @@ import firebase from "../FirebaseDb";
 import { formatDate, formatDateDisplay } from "../constants/DateFormats";
 
 export default function TaskDetailsPage({ route, navigation }) {
-  const { userId, item, getTasks } = route.params;
+  const { userId, item } = route.params;
   const {
     title,
     description,
@@ -56,10 +56,7 @@ export default function TaskDetailsPage({ route, navigation }) {
       Alert.alert("Task deleted", "", [
         {
           text: "Ok",
-          onPress: () => {
-            getTasks();
-            navigation.navigate("TaskList");
-          },
+          onPress: () => navigation.navigate("TaskList"),
         },
       ])
     );
@@ -70,10 +67,7 @@ export default function TaskDetailsPage({ route, navigation }) {
       Alert.alert("Task deleted", "", [
         {
           text: "Ok",
-          onPress: () => {
-            getTasks();
-            navigation.navigate("TaskList");
-          },
+          onPress: () => navigation.navigate("TaskList"),
         },
       ])
     );
@@ -117,9 +111,7 @@ export default function TaskDetailsPage({ route, navigation }) {
             Alert.alert("Confirm delete?", "Task: " + title, [
               {
                 text: "Yes",
-                onPress: () => {
-                  handleRepeat();
-                },
+                onPress: () => handleRepeat(),
               },
               { text: "No", onPress: () => {} },
             ])

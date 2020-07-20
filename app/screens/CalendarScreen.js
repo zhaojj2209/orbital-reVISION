@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Agenda } from "react-native-calendars";
+import { useIsFocused } from "@react-navigation/native";
 
 import firebase from "../FirebaseDb";
 import {
@@ -29,8 +30,9 @@ export default function CalendarScreen({ route, navigation }) {
   const { userId } = route.params;
   const bufferTime = getMinutes(15);
   const minimumSessionTime = getMinutes(30);
+  const isFocused = useIsFocused();
 
-  useEffect(() => refreshData(), [userId]);
+  useEffect(() => refreshData(), [isFocused]);
 
   useEffect(() => loadItems(todayObject), [events]);
 
@@ -64,6 +66,7 @@ export default function CalendarScreen({ route, navigation }) {
               repeatId: data.repeatId,
               repeatDate:
                 data.repeatDate == null ? null : data.repeatDate.toDate(),
+              taskId: data.taskId,
             },
           });
         });
@@ -227,7 +230,6 @@ export default function CalendarScreen({ route, navigation }) {
                   userId: userId,
                   event: item,
                   categories: categories,
-                  onGoBack: refreshData,
                 })
               }
             >
@@ -290,7 +292,6 @@ export default function CalendarScreen({ route, navigation }) {
               isNewEvent: true,
               event: {},
               categories: categories,
-              onGoBack: refreshData,
             })
           }
         />
@@ -300,7 +301,6 @@ export default function CalendarScreen({ route, navigation }) {
           onPress={() =>
             navigation.navigate("CategoryList", {
               userId: userId,
-              onGoBack: refreshData,
             })
           }
         />

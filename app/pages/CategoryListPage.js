@@ -9,15 +9,17 @@ import {
   FlatList,
   Alert,
 } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 
 import firebase from "../FirebaseDb";
 
 export default function CategoryList({ route, navigation }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [categories, setCategories] = useState(null);
-  const { userId, onGoBack } = route.params;
+  const { userId } = route.params;
+  const isFocused = useIsFocused();
 
-  useEffect(() => getCategories(), [userId]);
+  useEffect(() => getCategories(), [isFocused]);
 
   const getCategories = () => {
     firebase
@@ -25,6 +27,7 @@ export default function CategoryList({ route, navigation }) {
       .collection("users")
       .doc(userId)
       .collection("categories")
+      .orderBy("title")
       .get()
       .then((querySnapshot) => {
         const results = [];
@@ -69,10 +72,7 @@ export default function CategoryList({ route, navigation }) {
         Alert.alert("Category Deleted", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              getCategories();
-            },
+            onPress: () => getCategories(),
           },
         ]);
       });
@@ -99,10 +99,6 @@ export default function CategoryList({ route, navigation }) {
                     userId: userId,
                     isNewCategory: false,
                     category: item,
-                    onGoBack: () => {
-                      onGoBack();
-                      getCategories();
-                    },
                   })
                 }
               />
@@ -138,10 +134,6 @@ export default function CategoryList({ route, navigation }) {
             userId: userId,
             isNewCategory: true,
             category: {},
-            onGoBack: () => {
-              onGoBack();
-              getCategories();
-            },
           })
         }
       />
