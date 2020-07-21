@@ -13,6 +13,7 @@ import { Formik } from "formik";
 import * as yup from "yup";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import firebase from "../FirebaseDb";
+import * as Notifications from "expo-notifications";
 
 import moment from "moment";
 
@@ -48,7 +49,72 @@ export default function TaskInputPage({ route, navigation }) {
         return !isNaN(Number(val));
       }),
   });
-  const handleCreateTask = (values) =>
+
+  async function scheduleNotif(title, expectedCompletionTime, deadline) {
+    const identifier = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: title + " is due soon!",
+        body:
+          moment(deadline, "MMMM Do YYYY, h:mm a").diff(moment(), "minutes") /
+            60 <
+          expectedCompletionTime
+            ? "Deadline of task in " +
+              (
+                moment(deadline, "MMMM Do YYYY, h:mm a").diff(
+                  moment(),
+                  "minutes"
+                ) / 60
+              ).toFixed(2) +
+              " hour(s)"
+            : "Deadline of task in " + expectedCompletionTime + " hour(s)",
+      },
+      trigger:
+        moment(deadline, "MMMM Do YYYY, h:mm a").diff(moment(), "minutes") /
+          60 <
+        expectedCompletionTime
+          ? null
+          : moment(deadline, "MMMM Do YYYY, h:mm a")
+              .subtract({
+                hours: expectedCompletionTime,
+              })
+              .toDate(),
+    });
+    return identifier;
+  }
+
+  function getIdentifier() {
+    const oldIdentifier = "";
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .collection("tasks")
+      .doc(task.key)
+      .get()
+      .then((doc) => {
+        const { identifier } = doc.data();
+        oldIdentifier = identifier;
+        console.log(oldIdentifier);
+      });
+    return oldIdentifier;
+  }
+
+  async function rescheduleNotif(
+    oldIdentifier,
+    title,
+    expectedCompletionTime,
+    deadline
+  ) {
+    await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
+    return scheduleNotif(title, expectedCompletionTime, deadline);
+  }
+
+  const handleCreateTask = async (values) => {
+    let identifier = await scheduleNotif(
+      values.title,
+      values.expectedCompletionTime,
+      values.deadline
+    );
     firebase
       .firestore()
       .collection("users")
@@ -60,6 +126,7 @@ export default function TaskInputPage({ route, navigation }) {
         importance: values.importance,
         expectedCompletionTime: values.expectedCompletionTime,
         deadline: values.deadline,
+        identifier: identifier,
       })
       .then(() =>
         Alert.alert("Task Created", "", [
@@ -73,8 +140,16 @@ export default function TaskInputPage({ route, navigation }) {
         ])
       )
       .catch((err) => console.error(err));
+  };
 
-  const handleEditTask = (values) =>
+  const handleEditTask = async (values) => {
+    const oldIdentifier = getIdentifier();
+    let newIdentifer = await rescheduleNotif(
+      oldIdentifier,
+      values.title,
+      values.expectedCompletionTime,
+      values.deadline
+    );
     firebase
       .firestore()
       .collection("users")
@@ -87,6 +162,7 @@ export default function TaskInputPage({ route, navigation }) {
         importance: values.importance,
         expectedCompletionTime: values.expectedCompletionTime,
         deadline: values.deadline,
+        identifier: newIdentifer,
       })
       .then(() =>
         Alert.alert("Task Edited", "", [
@@ -100,6 +176,16 @@ export default function TaskInputPage({ route, navigation }) {
         ])
       )
       .catch((err) => console.error(err));
+  };
+
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
+
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
