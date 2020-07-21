@@ -12,7 +12,7 @@ import moment from "moment";
 import { useIsFocused } from "@react-navigation/native";
 
 import firebase from "../FirebaseDb";
-import { formatDateDisplay } from "../constants/DateFormats";
+import { formatDateDisplay, getHours } from "../constants/DateFormats";
 import { taskColours } from "../constants/Colours";
 
 export default function TaskListScreen({ route, navigation }) {
@@ -23,22 +23,26 @@ export default function TaskListScreen({ route, navigation }) {
   useEffect(() => getTasks(), [isFocused]);
 
   const getTasks = () => {
-    let counter = 0;
-
-    function taskColor(deadline) {
-      let date = moment(deadline);
-      if (date.isAfter(moment())) {
-        while (date.isAfter(moment())) {
-          counter += 1;
-          date.subtract(1, "days");
-        }
-        return counter == 1
+    let studyHours;
+    function taskColor(task) {
+      const { deadline, expectedCompletionTime, importance } = task;
+      const date = moment(deadline.toDate());
+      const currentTime = moment();
+      if (date.isAfter(currentTime)) {
+        const complTime = parseInt(expectedCompletionTime);
+        const imp = parseInt(importance);
+        const multiplier =
+          imp == 5 ? 2 : imp == 4 ? 1.75 : imp == 3 ? 1.5 : imp == 2 ? 1.25 : 1;
+        const dayDiff = date.diff(currentTime, "days");
+        const dayTime = dayDiff * studyHours;
+        const priority = Math.round(dayTime / complTime / multiplier);
+        return priority <= 1
           ? taskColours.one
-          : counter == 2
+          : priority <= 2
           ? taskColours.two
-          : counter == 3
+          : priority <= 3
           ? taskColours.three
-          : counter == 4
+          : priority <= 4
           ? taskColours.four
           : taskColours.five;
       } else {
@@ -49,29 +53,41 @@ export default function TaskListScreen({ route, navigation }) {
       .firestore()
       .collection("users")
       .doc(userId)
-      .collection("tasks")
-      .orderBy("deadline")
+      .collection("sleep")
+      .doc("schedule")
       .get()
-      .then((querySnapshot) => {
-        const results = [];
-        querySnapshot.docs.map((documentSnapshot) => {
-          const data = documentSnapshot.data();
-          results.push({
-            key: documentSnapshot.id,
-            data: {
-              title: data.title,
-              description: data.description,
-              importance: data.importance,
-              expectedCompletionTime: data.expectedCompletionTime,
-              deadline: data.deadline.toDate(),
-              repeat: data.repeat,
-              repeatDate:
-                data.repeatDate == null ? null : data.repeatDate.toDate(),
-            },
-            color: taskColor(data.deadline.toDate()),
-          });
-        });
-        setTasks(results);
+      .then((doc) => {
+        const { wakeTime, sleepTime } = doc.data();
+        studyHours = (sleepTime - wakeTime) / getHours(1) / 3;
+        firebase
+          .firestore()
+          .collection("users")
+          .doc(userId)
+          .collection("tasks")
+          .orderBy("deadline")
+          .get()
+          .then((querySnapshot) => {
+            const results = [];
+            querySnapshot.docs.map((documentSnapshot) => {
+              const data = documentSnapshot.data();
+              results.push({
+                key: documentSnapshot.id,
+                data: {
+                  title: data.title,
+                  description: data.description,
+                  importance: data.importance,
+                  expectedCompletionTime: data.expectedCompletionTime,
+                  deadline: data.deadline.toDate(),
+                  repeat: data.repeat,
+                  repeatDate:
+                    data.repeatDate == null ? null : data.repeatDate.toDate(),
+                },
+                color: taskColor(data),
+              });
+            });
+            setTasks(results);
+          })
+          .catch((err) => console.error(err));
       })
       .catch((err) => console.error(err));
   };
@@ -88,7 +104,6 @@ export default function TaskListScreen({ route, navigation }) {
                   navigation.navigate("TaskDetails", {
                     userId,
                     item,
-                    getTasks,
                   })
                 }
                 style={StyleSheet.flatten([
@@ -111,7 +126,6 @@ export default function TaskListScreen({ route, navigation }) {
           onPress={() => {
             navigation.navigate("TaskInput", {
               userId: userId,
-              onGoBack: getTasks,
               isNewTask: true,
               task: null,
             });

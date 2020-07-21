@@ -28,7 +28,7 @@ export default function TaskInputPage({ route, navigation }) {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [showRepeatPicker, setShowRepeatPicker] = useState(false);
   const [showRepeatDatePicker, setShowRepeatDatePicker] = useState(false);
-  const { userId, onGoBack, isNewTask, task } = route.params;
+  const { userId, isNewTask, task } = route.params;
   const tasksDb = firebase
     .firestore()
     .collection("users")
@@ -80,10 +80,7 @@ export default function TaskInputPage({ route, navigation }) {
         Alert.alert("Task Created", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              navigation.navigate("TaskList");
-            },
+            onPress: () => navigation.navigate("TaskList"),
           },
         ])
       )
@@ -106,10 +103,7 @@ export default function TaskInputPage({ route, navigation }) {
         Alert.alert("Task Edited", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              navigation.navigate("TaskList");
-            },
+            onPress: () => navigation.navigate("TaskList"),
           },
         ])
       )

@@ -99,7 +99,6 @@ export default function TaskDetailsPage({ route, navigation }) {
           onPress={() =>
             navigation.navigate("TaskInput", {
               userId: userId,
-              onGoBack: getTasks,
               isNewTask: false,
               task: item,
             })
