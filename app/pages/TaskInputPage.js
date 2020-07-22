@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Button,
   TouchableWithoutFeedback,
+  TouchableOpacity,
   Keyboard,
   Alert,
   Picker,
@@ -13,8 +14,8 @@ import {
 import { Formik } from "formik";
 import * as yup from "yup";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import firebase from "../FirebaseDb";
 import * as Notifications from "expo-notifications";
+import moment from "moment";
 
 import firebase from "../FirebaseDb";
 import {
@@ -24,7 +25,6 @@ import {
   formatDateDisplay,
   today,
 } from "../constants/DateFormats";
-import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default function TaskInputPage({ route, navigation }) {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
