@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { Agenda } from "react-native-calendars";
 import { useIsFocused } from "@react-navigation/native";
+import * as Notifications from "expo-notifications";
+import moment from "moment";
 
 import firebase from "../FirebaseDb";
 import {
@@ -112,6 +114,29 @@ export default function CalendarScreen({ route, navigation }) {
 
   const timeToString = (time) => formatDateString(new Date(time));
 
+  async function scheduleEventNotif(title, startDate) {
+    const identifier = await Notifications.scheduleNotificationAsync({
+      content: {
+        title:
+          title +
+          " is in " +
+          (moment(startDate, "T00:00:00.000+08:00").diff(moment(), "minutes") <
+          30
+            ? moment(startDate, "T00:00:00.000+08:00").diff(
+                moment(),
+                "minutes"
+              ) + " minutes!"
+            : "30 minutes!"),
+      },
+      trigger:
+        moment(startDate, "T00:00:00.000+08:00").diff(moment(), "minutes") < 30
+          ? null
+          : moment(startDate, "T00:00:00.000+08:00")
+              .subtract({ minutes: 30 })
+              .toDate(),
+    });
+    return identifier;
+  }
   const scheduleStudySessions = () => {
     firebase
       .firestore()
@@ -120,7 +145,7 @@ export default function CalendarScreen({ route, navigation }) {
       .collection("sleep")
       .doc("schedule")
       .get()
-      .then((doc) => {
+      .then(async (doc) => {
         if (doc.exists) {
           const { wakeTime, sleepTime } = doc.data();
           for (let i = 1; i <= 7; i++) {
@@ -135,6 +160,10 @@ export default function CalendarScreen({ route, navigation }) {
               const sessionEnd = startDate.getTime() - bufferTime;
               nextSessionTime = endDate.getTime() + bufferTime;
               if (sessionEnd - sessionStart > minimumSessionTime) {
+                const identifier = await scheduleEventNotif(
+                  "Study Session",
+                  new Date(sessionStart)
+                );
                 firebase
                   .firestore()
                   .collection("users")
@@ -149,6 +178,8 @@ export default function CalendarScreen({ route, navigation }) {
                     repeat: "None",
                     repeatId: "",
                     repeatDate: null,
+                    identifier: identifier,
+                    taskId: null,
                   })
                   .catch((err) => console.error(err));
               }
@@ -157,6 +188,10 @@ export default function CalendarScreen({ route, navigation }) {
               dayEnd > nextSessionTime &&
               dayEnd - nextSessionTime >= minimumSessionTime
             ) {
+              const identifier = await scheduleEventNotif(
+                "Study Session",
+                new Date(nextSessionTime)
+              );
               firebase
                 .firestore()
                 .collection("users")
@@ -171,6 +206,8 @@ export default function CalendarScreen({ route, navigation }) {
                   repeat: "None",
                   repeatId: "",
                   repeatDate: null,
+                  identifier: identifier,
+                  taskId: null,
                 })
                 .catch((err) => console.error(err));
             }
