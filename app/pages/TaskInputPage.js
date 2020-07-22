@@ -15,8 +15,8 @@ import * as yup from "yup";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import firebase from "../FirebaseDb";
 import * as Notifications from "expo-notifications";
+import moment from "moment";
 
-import firebase from "../FirebaseDb";
 import {
   newRoundedDate,
   formatDate,
