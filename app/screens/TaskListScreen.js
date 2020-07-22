@@ -6,76 +6,88 @@ import {
   SafeAreaView,
   Button,
   FlatList,
-  Dimensions,
-  Modal,
-  Alert,
+  TouchableOpacity,
 } from "react-native";
-import firebase from "../FirebaseDb";
 import moment from "moment";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { useIsFocused } from "@react-navigation/native";
+
+import firebase from "../FirebaseDb";
+import { formatDateDisplay, getHours } from "../constants/DateFormats";
+import { taskColours } from "../constants/Colours";
 
 export default function TaskListScreen({ route, navigation }) {
   const [tasks, setTasks] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const { userId } = route.params;
+  const isFocused = useIsFocused();
 
-  useEffect(() => getTasks(), []);
+  useEffect(() => getTasks(), [isFocused]);
 
   const getTasks = () => {
-    let counter = 0;
-
-    function taskColor(deadline) {
-      if (moment(deadline, "MMMM Do YYYY, h:mm a").isAfter(moment())) {
-        counter = counter + 1;
-        return counter == 1
-          ? "#ee6969"
-          : counter == 2
-          ? "#f97c7c"
-          : counter == 3
-          ? "#fdaaaa"
-          : counter == 4
-          ? "#f4c1c1"
-          : "#fde0e0";
+    let studyHours;
+    function taskColor(task) {
+      const { deadline, expectedCompletionTime, importance } = task;
+      const date = moment(deadline.toDate());
+      const currentTime = moment();
+      if (date.isAfter(currentTime)) {
+        const complTime = parseInt(expectedCompletionTime);
+        const imp = parseInt(importance);
+        const multiplier =
+          imp == 5 ? 2 : imp == 4 ? 1.75 : imp == 3 ? 1.5 : imp == 2 ? 1.25 : 1;
+        const dayDiff = date.diff(currentTime, "days");
+        const dayTime = dayDiff * studyHours;
+        const priority = Math.round(dayTime / complTime / multiplier);
+        return priority <= 1
+          ? taskColours.one
+          : priority <= 2
+          ? taskColours.two
+          : priority <= 3
+          ? taskColours.three
+          : priority <= 4
+          ? taskColours.four
+          : taskColours.five;
       } else {
-        return "red";
+        return taskColours.overdue;
       }
     }
     firebase
       .firestore()
       .collection("users")
       .doc(userId)
-      .collection("tasks")
+      .collection("sleep")
+      .doc("schedule")
       .get()
-      .then((querySnapshot) => {
-        const results = [];
-        querySnapshot.docs.map((documentSnapshot) => {
-          const data = documentSnapshot.data();
-          results.push({
-            key: documentSnapshot.id,
-            data: {
-              title: data.title,
-              description: data.description,
-              importance: data.importance,
-              expectedCompletionTime: data.expectedCompletionTime,
-              deadline: data.deadline,
-            },
-          });
-        });
-        const sortedResults = []
-          .concat(results)
-          .sort((taskOne, taskTwo) =>
-            moment(taskOne.data.deadline, "MMMM Do YYYY, h:mm a").isAfter(
-              moment(taskTwo.data.deadline, "MMMM Do YYYY, h:mm a")
-            )
-              ? 1
-              : -1
-          );
-        const coloredResults = sortedResults.map((item) => ({
-          ...item,
-          color: taskColor(item.data.deadline),
-        }));
-
-        setTasks(coloredResults);
+      .then((doc) => {
+        const { wakeTime, sleepTime } = doc.data();
+        studyHours = (sleepTime - wakeTime) / getHours(1) / 3;
+        firebase
+          .firestore()
+          .collection("users")
+          .doc(userId)
+          .collection("tasks")
+          .orderBy("deadline")
+          .get()
+          .then((querySnapshot) => {
+            const results = [];
+            querySnapshot.docs.map((documentSnapshot) => {
+              const data = documentSnapshot.data();
+              results.push({
+                key: documentSnapshot.id,
+                data: {
+                  title: data.title,
+                  description: data.description,
+                  importance: data.importance,
+                  expectedCompletionTime: data.expectedCompletionTime,
+                  deadline: data.deadline.toDate(),
+                  repeat: data.repeat,
+                  repeatDate:
+                    data.repeatDate == null ? null : data.repeatDate.toDate(),
+                },
+                color: taskColor(data),
+              });
+            });
+            setTasks(results);
+          })
+          .catch((err) => console.error(err));
       })
       .catch((err) => console.error(err));
   };
@@ -92,7 +104,6 @@ export default function TaskListScreen({ route, navigation }) {
                   navigation.navigate("TaskDetails", {
                     userId,
                     item,
-                    getTasks,
                   })
                 }
                 style={StyleSheet.flatten([
@@ -101,23 +112,36 @@ export default function TaskListScreen({ route, navigation }) {
                 ])}
               >
                 <Text style={styles.title}> {item.data.title}</Text>
-                <Text style={styles.deadline}> {item.data.deadline}</Text>
+                <Text style={styles.deadline}>
+                  {formatDateDisplay(item.data.deadline)}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
       />
-      <Button
-        title="Add Tasks"
-        onPress={() => {
-          navigation.navigate("TaskInput", {
-            userId: userId,
-            onGoBack: getTasks,
-            isNewTask: true,
-            task: null,
-          });
-        }}
-      />
+      <View style={styles.buttonRow}>
+        <Button
+          title="Add Tasks"
+          onPress={() => {
+            navigation.navigate("TaskInput", {
+              userId: userId,
+              isNewTask: true,
+              task: null,
+            });
+          }}
+        />
+        <Button
+          title="Logout"
+          style={styles.button}
+          onPress={() =>
+            firebase
+              .auth()
+              .signOut()
+              .then(() => navigation.navigate("Login"))
+          }
+        />
+      </View>
     </SafeAreaView>
   );
 }

@@ -5,6 +5,7 @@ import {
   TextInput,
   StyleSheet,
   Button,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
@@ -12,16 +13,15 @@ import {
   Platform,
 } from "react-native";
 
-import Colours from "../constants/Colours";
+import { categoryColours } from "../constants/Colours";
 import firebase from "../FirebaseDb";
-import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default function CategoryFormPage({ route, navigation }) {
   const [title, setTitle] = useState("");
-  const [colour, setColour] = useState(Colours.one);
+  const [colour, setColour] = useState(categoryColours.one);
   const [showPicker, setShowPicker] = useState(Platform.OS === "android");
 
-  const { userId, isNewCategory, category, onGoBack } = route.params;
+  const { userId, isNewCategory, category } = route.params;
 
   useEffect(() => {
     if (!isNewCategory) {
@@ -45,10 +45,7 @@ export default function CategoryFormPage({ route, navigation }) {
         Alert.alert("Category Created", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              navigation.navigate("CategoryList");
-            },
+            onPress: () => navigation.navigate("CategoryList"),
           },
         ])
       )
@@ -69,10 +66,7 @@ export default function CategoryFormPage({ route, navigation }) {
         Alert.alert("Category Edited Successfully", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              navigation.navigate("CategoryList");
-            },
+            onPress: () => navigation.navigate("CategoryList"),
           },
         ])
       )
@@ -80,7 +74,10 @@ export default function CategoryFormPage({ route, navigation }) {
 
   const handleUpdateTitle = (title) => setTitle(title);
 
-  const handleTogglePicker = () => setShowPicker(!showPicker);
+  const handleTogglePicker = () => {
+    Keyboard.dismiss();
+    setShowPicker(!showPicker);
+  };
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -114,39 +111,73 @@ export default function CategoryFormPage({ route, navigation }) {
             onValueChange={(itemValue, itemIndex) => setColour(itemValue)}
             itemStyle={styles.pickerText}
           >
-            <Picker.Item label="██" value={Colours.one} color={Colours.one} />
-            <Picker.Item label="██" value={Colours.two} color={Colours.two} />
             <Picker.Item
               label="██"
-              value={Colours.three}
-              color={Colours.three}
-            />
-            <Picker.Item label="██" value={Colours.four} color={Colours.four} />
-            <Picker.Item label="██" value={Colours.five} color={Colours.five} />
-            <Picker.Item label="██" value={Colours.six} color={Colours.six} />
-            <Picker.Item
-              label="██"
-              value={Colours.seven}
-              color={Colours.seven}
+              value={categoryColours.one}
+              color={categoryColours.one}
             />
             <Picker.Item
               label="██"
-              value={Colours.eight}
-              color={Colours.eight}
+              value={categoryColours.two}
+              color={categoryColours.two}
             />
-            <Picker.Item label="██" value={Colours.nine} color={Colours.nine} />
-            <Picker.Item label="██" value={Colours.ten} color={Colours.ten} />
+            <Picker.Item
+              label="██"
+              value={categoryColours.three}
+              color={categoryColours.three}
+            />
+            <Picker.Item
+              label="██"
+              value={categoryColours.four}
+              color={categoryColours.four}
+            />
+            <Picker.Item
+              label="██"
+              value={categoryColours.five}
+              color={categoryColours.five}
+            />
+            <Picker.Item
+              label="██"
+              value={categoryColours.six}
+              color={categoryColours.six}
+            />
+            <Picker.Item
+              label="██"
+              value={categoryColours.seven}
+              color={categoryColours.seven}
+            />
+            <Picker.Item
+              label="██"
+              value={categoryColours.eight}
+              color={categoryColours.eight}
+            />
+            <Picker.Item
+              label="██"
+              value={categoryColours.nine}
+              color={categoryColours.nine}
+            />
+            <Picker.Item
+              label="██"
+              value={categoryColours.ten}
+              color={categoryColours.ten}
+            />
           </Picker>
         )}
         <Button
           title={isNewCategory ? "Create Category" : "Edit Category"}
           onPress={() => {
-            if (title.length && colour.length) {
+            if (title.length) {
               if (isNewCategory) {
                 handleCreateCategory();
               } else {
                 handleEditCategory();
               }
+            } else {
+              Alert.alert(
+                "Category cannot be saved!",
+                "Category title cannot be blank",
+                [{ text: "OK", onPress: () => {} }]
+              );
             }
           }}
         />

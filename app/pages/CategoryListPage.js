@@ -9,15 +9,17 @@ import {
   FlatList,
   Alert,
 } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 
 import firebase from "../FirebaseDb";
 
 export default function CategoryList({ route, navigation }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [categories, setCategories] = useState(null);
-  const { userId, onGoBack } = route.params;
+  const { userId } = route.params;
+  const isFocused = useIsFocused();
 
-  useEffect(() => getCategories(), [userId]);
+  useEffect(() => getCategories(), [isFocused]);
 
   const getCategories = () => {
     firebase
@@ -25,6 +27,7 @@ export default function CategoryList({ route, navigation }) {
       .collection("users")
       .doc(userId)
       .collection("categories")
+      .orderBy("title")
       .get()
       .then((querySnapshot) => {
         const results = [];
@@ -62,32 +65,14 @@ export default function CategoryList({ route, navigation }) {
           .get()
           .then((querySnapshot) => {
             querySnapshot.docs.forEach((documentSnapshot) => {
-              const data = documentSnapshot.data();
-              const id = documentSnapshot.id;
-              firebase
-                .firestore()
-                .collection("users")
-                .doc(userId)
-                .collection("events")
-                .doc(id)
-                .set({
-                  title: data.title,
-                  description: data.description,
-                  startDate: data.startDate.toDate(),
-                  endDate: data.endDate.toDate(),
-                  category: "",
-                })
-                .catch((err) => console.error(err));
+              documentSnapshot.ref.delete();
             });
           })
           .catch((err) => console.error(err));
         Alert.alert("Category Deleted", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              getCategories();
-            },
+            onPress: () => getCategories(),
           },
         ]);
       });
@@ -114,10 +99,6 @@ export default function CategoryList({ route, navigation }) {
                     userId: userId,
                     isNewCategory: false,
                     category: item,
-                    onGoBack: () => {
-                      onGoBack();
-                      getCategories();
-                    },
                   })
                 }
               />
@@ -125,16 +106,20 @@ export default function CategoryList({ route, navigation }) {
                 title="Delete"
                 style={styles.button}
                 onPress={() =>
-                  Alert.alert("Confirm delete?", "Event: " + item.data.title, [
-                    {
-                      text: "OK",
-                      onPress: () => handleDeleteCategory(item.key),
-                    },
-                    {
-                      text: "Cancel",
-                      onPress: () => {},
-                    },
-                  ])
+                  Alert.alert(
+                    "Confirm delete?",
+                    "This will delete all events in the category as well!",
+                    [
+                      {
+                        text: "OK",
+                        onPress: () => handleDeleteCategory(item.key),
+                      },
+                      {
+                        text: "Cancel",
+                        onPress: () => {},
+                      },
+                    ]
+                  )
                 }
               />
             </View>
@@ -149,10 +134,6 @@ export default function CategoryList({ route, navigation }) {
             userId: userId,
             isNewCategory: true,
             category: {},
-            onGoBack: () => {
-              onGoBack();
-              getCategories();
-            },
           })
         }
       />

@@ -6,19 +6,21 @@ import {
   StyleSheet,
   Button,
   TouchableWithoutFeedback,
+  TouchableOpacity,
   Keyboard,
   Alert,
-  Platform,
   Picker,
 } from "react-native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import moment from "moment";
 
-import DatePicker from "../components/DatePicker";
 import firebase from "../FirebaseDb";
 import {
-  formatDate,
-  formatTime,
+  formatDateDisplay,
   newRoundedDate,
   getHours,
+  formatDate,
+  today,
 } from "../constants/DateFormats";
 
 export default function EventFormPage({ route, navigation }) {
@@ -28,21 +30,65 @@ export default function EventFormPage({ route, navigation }) {
   const [endDate, setEndDate] = useState(newRoundedDate());
   const [categoryId, setCategoryId] = useState("");
   const [categoryName, setCategoryName] = useState("None");
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [pickingStartDate, setPickingStartDate] = useState(true);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [repeat, setRepeat] = useState("None");
+  const [repeatId, setRepeatId] = useState("");
+  const [repeatDate, setRepeatDate] = useState(today);
+  const [showRepeatPicker, setShowRepeatPicker] = useState(false);
+  const [showRepeatDatePicker, setShowRepeatDatePicker] = useState(false);
+  const [taskId, setTaskId] = useState(null);
+  const [createTask, setCreateTask] = useState(false);
+  const [importance, setImportance] = useState("");
+  const [expectedCompletionTime, setExpectedCompletionTime] = useState("");
 
-  const { userId, isNewEvent, event, categories, onGoBack } = route.params;
+  const { userId, isNewEvent, event, categories } = route.params;
+  const prevRepeatStatus = isNewEvent ? null : event.data.repeat;
+
+  const eventsDb = firebase
+    .firestore()
+    .collection("users")
+    .doc(userId)
+    .collection("events");
+
+  const tasksDb = firebase
+    .firestore()
+    .collection("users")
+    .doc(userId)
+    .collection("tasks");
 
   useEffect(() => {
     if (!isNewEvent) {
-      const { title, description, startDate, endDate, category } = event.data;
+      const {
+        title,
+        description,
+        startDate,
+        endDate,
+        category,
+        repeat,
+        repeatId,
+        repeatDate,
+        taskId,
+      } = event.data;
       setTitle(title);
       setDescription(description);
       setStartDate(startDate);
       setEndDate(endDate);
+      setRepeat(repeat);
+      setRepeatId(repeatId);
+      setRepeatDate(repeatDate);
+      setTaskId(taskId);
+      if (taskId != null) {
+        setCreateTask(true);
+        tasksDb
+          .doc(taskId)
+          .get()
+          .then((doc) => {
+            setImportance(doc.data().importance);
+            setExpectedCompletionTime(doc.data().expectedCompletionTime);
+          });
+      }
       if (category.length > 0) {
         setCategoryId(category);
         const filtered = categories.filter((cat) => cat.key == category);
@@ -53,127 +99,252 @@ export default function EventFormPage({ route, navigation }) {
     }
   }, [event]);
 
-  const handleCreateEvent = () =>
-    startDate >= endDate
-      ? Alert.alert("Event duration invalid!", "", [
+  const handleCreateEvent = () => {
+    if (startDate >= endDate) {
+      Alert.alert("Event duration invalid!", "", [
+        {
+          text: "OK",
+          onPress: () => {},
+        },
+      ]);
+    } else {
+      eventsDb
+        .add({
+          title: title,
+          description: description,
+          startDate: startDate,
+          endDate: endDate,
+          category: categoryId,
+          repeat: repeat,
+          repeatId: "",
+          repeatDate: null,
+          taskId: taskId,
+        })
+        .then((doc) => {
+          if (repeat != "None") {
+            setRepeatId(doc.id);
+            eventsDb
+              .doc(doc.id)
+              .update({
+                repeatId: doc.id,
+                repeatDate: repeatDate,
+              })
+              .then(() => {
+                createRepeatedEvents(doc.id);
+                if (createTask) {
+                  handleCreateTask(doc.id);
+                }
+              });
+          } else if (createTask) {
+            handleCreateTask(doc.id);
+          }
+          Alert.alert("Event Created", "", [
+            {
+              text: "OK",
+              onPress: () => navigation.navigate("Calendar"),
+            },
+          ]);
+        })
+        .catch((err) => console.error(err));
+    }
+  };
+
+  const handleCreateTask = (id) =>
+    tasksDb
+      .add({
+        title: title,
+        description: description,
+        importance: importance,
+        expectedCompletionTime: expectedCompletionTime,
+        deadline: startDate,
+        repeat: repeat,
+        repeatDate: repeat == "None" ? null : repeatDate,
+      })
+      .then((doc) => {
+        eventsDb.doc(id).update({
+          taskId: doc.id,
+        });
+      })
+      .catch((err) => console.error(err));
+
+  const handleEditEvent = () => {
+    if (startDate >= endDate) {
+      Alert.alert("Event duration invalid!", "", [
+        {
+          text: "OK",
+          onPress: () => {},
+        },
+      ]);
+    } else if (prevRepeatStatus != "None") {
+      Alert.alert(
+        "Change all repeated events?",
+        "Past repeated events will be deleted!",
+        [
+          {
+            text: "All events",
+            onPress: () => {
+              eventsDb
+                .where("repeatId", "==", repeatId)
+                .get()
+                .then((querySnapshot) => {
+                  querySnapshot.docs.forEach((documentSnapshot) => {
+                    documentSnapshot.ref.delete();
+                  });
+                  editEvents();
+                });
+            },
+          },
+          {
+            text: "This event",
+            onPress: () => editEvents(),
+          },
+        ]
+      );
+    } else {
+      editEvents();
+    }
+  };
+
+  const editEvents = () => {
+    eventsDb
+      .doc(event.key)
+      .set({
+        title: title,
+        description: description,
+        startDate: startDate,
+        endDate: endDate,
+        category: categoryId,
+        repeat: repeat,
+        repeatId: "",
+        repeatDate: null,
+        taskId: taskId,
+      })
+      .then(() => {
+        if (repeat != "None") {
+          setRepeatId(event.key);
+          eventsDb
+            .doc(event.key)
+            .update({
+              repeatId: event.key,
+              repeatDate: repeatDate,
+            })
+            .then(() => {
+              createRepeatedEvents(event.key);
+              editTask();
+            });
+        } else {
+          editTask();
+        }
+        Alert.alert("Event Edited Successfully", "", [
           {
             text: "OK",
-            onPress: () => {},
+            onPress: () => navigation.navigate("Calendar"),
           },
-        ])
-      : firebase
-          .firestore()
-          .collection("users")
-          .doc(userId)
-          .collection("events")
+        ]);
+      })
+      .catch((err) => console.error(err));
+  };
+
+  const editTask = () => {
+    if (createTask && taskId == null) {
+      handleCreateTask(event.key);
+    } else if (!createTask && taskId != null) {
+      tasksDb
+        .doc(taskId)
+        .delete()
+        .then(() => {
+          eventsDb.doc(event.key).update({
+            taskId: null,
+          });
+        });
+    } else if (createTask && taskId != null) {
+      tasksDb.doc(taskId).set({
+        title: title,
+        description: description,
+        importance: importance,
+        expectedCompletionTime: expectedCompletionTime,
+        deadline: startDate,
+        repeat: repeat,
+        repeatDate: repeat == "None" ? null : repeatDate,
+      });
+    }
+  };
+
+  const createRepeatedEvents = (repeatId) => {
+    const interval =
+      repeat == "Daily"
+        ? "days"
+        : repeat == "Weekly"
+        ? "weeks"
+        : repeat == "Monthly"
+        ? "months"
+        : "";
+    if (interval.length) {
+      let nextStartDate = moment(startDate).add(1, interval);
+      let nextEndDate = moment(endDate).add(1, interval);
+      while (nextStartDate < repeatDate) {
+        eventsDb
           .add({
             title: title,
             description: description,
-            startDate: startDate,
-            endDate: endDate,
+            startDate: nextStartDate.toDate(),
+            endDate: nextEndDate.toDate(),
             category: categoryId,
+            repeat: repeat,
+            repeatId: repeatId,
+            repeatDate: repeatDate,
           })
-          .then(() =>
-            Alert.alert("Event Created", "", [
-              {
-                text: "OK",
-                onPress: () => {
-                  onGoBack();
-                  navigation.navigate("Calendar");
-                },
-              },
-            ])
-          )
           .catch((err) => console.error(err));
-
-  const handleEditEvent = () =>
-    startDate >= endDate
-      ? Alert.alert("Event duration invalid!", "", [
-          {
-            text: "OK",
-            onPress: () => {},
-          },
-        ])
-      : firebase
-          .firestore()
-          .collection("users")
-          .doc(userId)
-          .collection("events")
-          .doc(event.key)
-          .set({
-            title: title,
-            description: description,
-            startDate: startDate,
-            endDate: endDate,
-            category: categoryId,
-          })
-          .then(() =>
-            Alert.alert("Event Edited Successfully", "", [
-              {
-                text: "OK",
-                onPress: () => {
-                  onGoBack();
-                  navigation.navigate("Calendar");
-                },
-              },
-            ])
-          )
-          .catch((err) => console.error(err));
+        nextStartDate.add(1, interval);
+        nextEndDate.add(1, interval);
+      }
+    }
+  };
 
   const handleUpdateTitle = (title) => setTitle(title);
 
   const handleUpdateDescription = (description) => setDescription(description);
 
-  const togglePickers = (
-    showStartDate,
-    showStartTime,
-    showEndDate,
-    showEndTime,
-    showCategory
-  ) => {
-    setShowStartDatePicker(showStartDate);
-    setShowStartTimePicker(showStartTime);
-    setShowEndDatePicker(showEndDate);
-    setShowEndTimePicker(showEndTime);
-    setShowCategoryPicker(showCategory);
+  const handleSubmitDate = (date) =>
+    pickingStartDate ? handleUpdateStartDate(date) : handleUpdateEndDate(date);
+
+  const handleUpdateStartDate = (selectedDate) => {
+    if (selectedDate > startDate && selectedDate >= endDate) {
+      setEndDate(new Date(selectedDate.getTime() + getHours(1)));
+    }
+    setStartDate(selectedDate);
   };
 
-  const closeAllDatePickers = () =>
-    togglePickers(false, false, false, false, false);
+  const handleUpdateEndDate = (selectedDate) => setEndDate(selectedDate);
 
-  const handleUpdateStartDate = (event, selectedDate) => {
-    const currentDate = selectedDate || startDate;
-    if (currentDate > startDate && currentDate >= endDate) {
-      setEndDate(new Date(currentDate.getTime() + getHours(1)));
-    }
-    setStartDate(currentDate);
-    if (Platform.OS === "android") {
-      closeAllDatePickers();
-    }
+  const handleToggleCategoryPicker = () => {
+    Keyboard.dismiss();
+    setShowRepeatPicker(false);
+    setShowCategoryPicker(!showCategoryPicker);
   };
 
-  const handleUpdateEndDate = (event, selectedDate) => {
-    const currentDate = selectedDate || startDate;
-    setEndDate(currentDate);
-    if (Platform.OS === "android") {
-      closeAllDatePickers();
-    }
+  const handleToggleRepeatPicker = () => {
+    Keyboard.dismiss();
+    setShowCategoryPicker(false);
+    setShowRepeatPicker(!showRepeatPicker);
   };
 
-  const handleToggleStartDatePicker = () =>
-    togglePickers(!showStartDatePicker, false, false, false, false);
+  const showPicker = (pickingStartDate) => {
+    Keyboard.dismiss();
+    setShowCategoryPicker(false);
+    setShowRepeatPicker(false);
+    setPickingStartDate(pickingStartDate);
+    setShowDatePicker(true);
+  };
 
-  const handleToggleStartTimePicker = () =>
-    togglePickers(false, !showStartTimePicker, false, false, false);
+  const toggleRepeatDatePicker = () => {
+    Keyboard.dismiss();
+    setShowCategoryPicker(false);
+    setShowRepeatPicker(false);
+    setShowRepeatDatePicker(true);
+  };
 
-  const handleToggleEndDatePicker = () =>
-    togglePickers(false, false, !showEndDatePicker, false, false);
-
-  const handleToggleEndTimePicker = () =>
-    togglePickers(false, false, false, !showEndTimePicker, false);
-
-  const handleToggleCategoryPicker = () =>
-    togglePickers(false, false, false, false, !showCategoryPicker);
+  const hidePicker = () => setShowDatePicker(false);
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -192,64 +363,31 @@ export default function EventFormPage({ route, navigation }) {
           value={description}
         />
         <View style={styles.dates}>
-          <Text style={styles.dateText}>Start:</Text>
-          <Button
-            onPress={handleToggleStartDatePicker}
-            title={formatDate(startDate)}
-          />
-          <Button
-            onPress={handleToggleStartTimePicker}
-            title={formatTime(startDate)}
-          />
+          <Text style={styles.dateText}>Start: </Text>
+          <TouchableOpacity onPress={() => showPicker(true)}>
+            <Text style={styles.dateText}>{formatDateDisplay(startDate)}</Text>
+          </TouchableOpacity>
         </View>
-        {showStartDatePicker && (
-          <DatePicker
-            initialDate={startDate}
-            onChange={handleUpdateStartDate}
-            mode="date"
-          />
-        )}
-        {showStartTimePicker && (
-          <DatePicker
-            initialDate={startDate}
-            onChange={handleUpdateStartDate}
-            mode="time"
-          />
-        )}
         <View style={styles.dates}>
-          <Text style={styles.dateText}>End:</Text>
-          <Button
-            onPress={handleToggleEndDatePicker}
-            title={formatDate(endDate)}
-          />
-          <Button
-            onPress={handleToggleEndTimePicker}
-            title={formatTime(endDate)}
-          />
+          <Text style={styles.dateText}>End: </Text>
+          <TouchableOpacity onPress={() => showPicker(false)}>
+            <Text style={styles.dateText}>{formatDateDisplay(endDate)}</Text>
+          </TouchableOpacity>
         </View>
-        {showEndDatePicker && (
-          <DatePicker
-            initialDate={endDate}
-            minimumDate={startDate}
-            onChange={handleUpdateEndDate}
-            mode="date"
-          />
-        )}
-        {showEndTimePicker && (
-          <DatePicker
-            initialDate={endDate}
-            minimumDate={startDate}
-            onChange={handleUpdateEndDate}
-            mode="time"
-          />
-        )}
+        <DateTimePickerModal
+          isVisible={showDatePicker}
+          mode="datetime"
+          minuteInterval={15}
+          onConfirm={(date) => {
+            handleSubmitDate(date);
+            hidePicker();
+          }}
+          onCancel={hidePicker}
+          date={pickingStartDate ? startDate : endDate}
+        />
         <View style={styles.dates}>
           <Text style={styles.dateText}>Category:</Text>
-          {Platform.OS === "ios" ? (
-            <Button onPress={handleToggleCategoryPicker} title={categoryName} />
-          ) : (
-            <Text>{categoryName}</Text>
-          )}
+          <Button onPress={handleToggleCategoryPicker} title={categoryName} />
         </View>
         {showCategoryPicker && (
           <Picker
@@ -258,15 +396,88 @@ export default function EventFormPage({ route, navigation }) {
             onValueChange={(itemValue, itemIndex) => {
               setCategoryId(itemValue);
               setCategoryName(
-                itemIndex == 0 ? "None" : categories[itemIndex - 1].data.title
+                itemIndex == 0
+                  ? "None"
+                  : itemIndex == 1
+                  ? "Study Session"
+                  : categories[itemIndex - 2].data.title
               );
             }}
           >
             <Picker.Item label="None" value="" />
+            <Picker.Item label="Study Session" value="Study Session" />
             {categories.map((cat) => (
-              <Picker.Item label={cat.data.title} value={cat.key} />
+              <Picker.Item
+                label={cat.data.title}
+                value={cat.key}
+                key={cat.key}
+              />
             ))}
           </Picker>
+        )}
+        <View style={styles.dates}>
+          <Text style={styles.dateText}>Repeat:</Text>
+          <TouchableOpacity onPress={handleToggleRepeatPicker}>
+            <Text style={styles.dateText}>{repeat}</Text>
+          </TouchableOpacity>
+        </View>
+        {repeat != "None" && (
+          <View style={styles.dates}>
+            <Text style={styles.dateText}>Repeat until:</Text>
+            <TouchableOpacity onPress={toggleRepeatDatePicker}>
+              <Text style={styles.dateText}>{formatDate(repeatDate)}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        <DateTimePickerModal
+          isVisible={showRepeatDatePicker}
+          mode="date"
+          onConfirm={(date) => {
+            setRepeatDate(date);
+            setShowRepeatDatePicker(false);
+          }}
+          onCancel={() => setShowRepeatDatePicker(false)}
+          date={repeatDate}
+        />
+        {showRepeatPicker && (
+          <Picker
+            selectedValue={repeat}
+            style={{ width: 350 }}
+            onValueChange={(itemValue, itemIndex) => setRepeat(itemValue)}
+          >
+            <Picker.Item label="None" value="None" />
+            <Picker.Item label="Daily" value="Daily" />
+            <Picker.Item label="Weekly" value="Weekly" />
+            <Picker.Item label="Monthly" value="Monthly" />
+          </Picker>
+        )}
+        <View style={styles.dates}>
+          <Text style={styles.dateText}>Create task for this event?</Text>
+          <TouchableOpacity
+            onPress={() =>
+              createTask ? setCreateTask(false) : setCreateTask(true)
+            }
+          >
+            <Text style={styles.dateText}>{createTask ? "Yes" : "No"}</Text>
+          </TouchableOpacity>
+        </View>
+        {createTask && (
+          <TextInput
+            style={styles.textInput}
+            placeholder="Importance (1 - 5)"
+            onChangeText={setImportance}
+            value={importance}
+            keyboardType="numeric"
+          />
+        )}
+        {createTask && (
+          <TextInput
+            style={styles.textInput}
+            placeholder="Expected Completion Time (hours)"
+            onChangeText={setExpectedCompletionTime}
+            value={expectedCompletionTime}
+            keyboardType="numeric"
+          />
         )}
         <Button
           title={isNewEvent ? "Create Event" : "Edit Event"}
@@ -277,6 +488,12 @@ export default function EventFormPage({ route, navigation }) {
               } else {
                 handleEditEvent();
               }
+            } else {
+              Alert.alert(
+                "Event cannot be saved!",
+                "Event title cannot be blank",
+                [{ text: "OK", onPress: () => {} }]
+              );
             }
           }}
         />
@@ -294,10 +511,10 @@ const styles = StyleSheet.create({
   dates: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    width: 250,
+    justifyContent: "space-between",
   },
   dateText: {
+    padding: 10,
     fontSize: 20,
   },
   textInput: {

@@ -9,11 +9,20 @@ import {
 } from "react-native";
 
 import firebase from "../FirebaseDb";
-import { formatDate, formatTime } from "../constants/DateFormats";
+import { formatDateDisplay, formatDate } from "../constants/DateFormats";
 
 export default function EventDetailsPage({ route, navigation }) {
-  const { userId, event, categories, onGoBack } = route.params;
-  const { title, description, startDate, endDate, category } = event.data;
+  const { userId, event, categories } = route.params;
+  const {
+    title,
+    description,
+    startDate,
+    endDate,
+    category,
+    repeat,
+    repeatDate,
+    repeatId,
+  } = event.data;
 
   const handleDeleteEvent = () => {
     firebase
@@ -27,19 +36,37 @@ export default function EventDetailsPage({ route, navigation }) {
         Alert.alert("Event Deleted", "", [
           {
             text: "OK",
-            onPress: () => {
-              onGoBack();
-              navigation.navigate("Calendar");
-            },
+            onPress: () => navigation.navigate("Calendar"),
           },
         ])
       );
   };
 
-  const startDateString =
-    "Start: " + formatDate(startDate) + " " + formatTime(startDate);
-  const endDateString =
-    "End: " + formatDate(endDate) + " " + formatTime(endDate);
+  const handleDeleteAllEvents = () => {
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .collection("events")
+      .where("repeatId", "==", repeatId)
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.docs.forEach((documentSnapshot) => {
+          documentSnapshot.ref.delete();
+        });
+      })
+      .then(() =>
+        Alert.alert("Event Deleted", "", [
+          {
+            text: "OK",
+            onPress: () => navigation.navigate("Calendar"),
+          },
+        ])
+      );
+  };
+
+  const startDateString = "Start: " + formatDateDisplay(startDate);
+  const endDateString = "End: " + formatDateDisplay(endDate);
 
   const categoryString = () => {
     const filtered = categories.filter((cat) => cat.key == category);
@@ -53,6 +80,11 @@ export default function EventDetailsPage({ route, navigation }) {
     );
   };
 
+  const repeatString =
+    "Repeat: " +
+    repeat +
+    (repeat != "None" ? " until " + formatDate(repeatDate) : "");
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.details}>
@@ -63,6 +95,7 @@ export default function EventDetailsPage({ route, navigation }) {
         <Text style={styles.text}>{startDateString}</Text>
         <Text style={styles.text}>{endDateString}</Text>
         <Text style={styles.text}>{categoryString()}</Text>
+        <Text style={styles.text}>{repeatString}</Text>
         <Button
           title="Edit"
           onPress={() =>
@@ -71,23 +104,37 @@ export default function EventDetailsPage({ route, navigation }) {
               isNewEvent: false,
               event: event,
               categories: categories,
-              onGoBack: onGoBack,
             })
           }
         />
         <Button
           title="Delete"
           onPress={() =>
-            Alert.alert("Confirm delete?", "Event: " + title, [
-              {
-                text: "OK",
-                onPress: () => handleDeleteEvent(event.key),
-              },
-              {
-                text: "Cancel",
-                onPress: () => {},
-              },
-            ])
+            repeat == "None"
+              ? Alert.alert("Confirm delete?", "Event: " + title, [
+                  {
+                    text: "OK",
+                    onPress: () => handleDeleteEvent(),
+                  },
+                  {
+                    text: "Cancel",
+                    onPress: () => {},
+                  },
+                ])
+              : Alert.alert("Delete all repeated events?", "", [
+                  {
+                    text: "All events",
+                    onPress: () => handleDeleteAllEvents(),
+                  },
+                  {
+                    text: "This event",
+                    onPress: () => handleDeleteEvent(),
+                  },
+                  {
+                    text: "Cancel",
+                    onPress: () => {},
+                  },
+                ])
           }
         />
       </View>

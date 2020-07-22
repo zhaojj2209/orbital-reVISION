@@ -31,14 +31,16 @@ export default function LoginPage({ navigation }) {
     firebase
       .auth()
       .signInWithEmailAndPassword(email, password)
-      .then((res) =>
+      .then((res) => {
+        Keyboard.dismiss();
+        setPassword("");
         Alert.alert("Login Successful", "", [
           {
             text: "OK",
             onPress: () => navigation.navigate("Home"),
           },
-        ])
-      )
+        ]);
+      })
       .catch((err) =>
         Alert.alert(err.message, "", [{ text: "OK", onPress: () => {} }])
       );
@@ -63,16 +65,13 @@ export default function LoginPage({ navigation }) {
           onChangeText={handleUpdatePassword}
           value={password}
         />
-        <Button
-          title="Login"
-          style={styles.button}
-          onPress={validateLoginInput}
-        />
-        <Button
-          title="Register"
-          style={styles.button}
-          onPress={() => navigation.navigate("Register")}
-        />
+        <Button title="Login" onPress={validateLoginInput} />
+        <View style={styles.bottomButton}>
+          <Button
+            title="Create an Account"
+            onPress={() => navigation.navigate("Register")}
+          />
+        </View>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -84,9 +83,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  image: {
-    marginBottom: 40,
-  },
   textInput: {
     borderWidth: 1,
     borderColor: "black",
@@ -96,8 +92,7 @@ const styles = StyleSheet.create({
     margin: 12,
     borderRadius: 0,
   },
-
-  button: {
-    marginTop: 42,
+  bottomButton: {
+    marginTop: 100,
   },
 });

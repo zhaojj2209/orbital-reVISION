@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Agenda } from "react-native-calendars";
+import { useIsFocused } from "@react-navigation/native";
 
 import firebase from "../FirebaseDb";
 import {
@@ -19,6 +20,7 @@ import {
   getMinutes,
   today,
 } from "../constants/DateFormats";
+import { categoryColours } from "../constants/Colours";
 
 export default function CalendarScreen({ route, navigation }) {
   const [events, setEvents] = useState([]);
@@ -28,8 +30,9 @@ export default function CalendarScreen({ route, navigation }) {
   const { userId } = route.params;
   const bufferTime = getMinutes(15);
   const minimumSessionTime = getMinutes(30);
+  const isFocused = useIsFocused();
 
-  useEffect(() => refreshData(), [userId]);
+  useEffect(() => refreshData(), [isFocused]);
 
   useEffect(() => loadItems(todayObject), [events]);
 
@@ -59,6 +62,11 @@ export default function CalendarScreen({ route, navigation }) {
               startDate: data.startDate.toDate(),
               endDate: data.endDate.toDate(),
               category: data.category,
+              repeat: data.repeat,
+              repeatId: data.repeatId,
+              repeatDate:
+                data.repeatDate == null ? null : data.repeatDate.toDate(),
+              taskId: data.taskId,
             },
           });
         });
@@ -97,8 +105,8 @@ export default function CalendarScreen({ route, navigation }) {
       backgroundColor: filtered.length
         ? filtered[0].data.colour
         : categoryId.length == 0
-        ? "#f9c2ff"
-        : "#ff6d01",
+        ? categoryColours.none
+        : categoryColours.studySession,
     };
   };
 
@@ -138,13 +146,16 @@ export default function CalendarScreen({ route, navigation }) {
                     startDate: new Date(sessionStart),
                     endDate: new Date(sessionEnd),
                     category: "Study Session",
+                    repeat: "None",
+                    repeatId: "",
+                    repeatDate: null,
                   })
                   .catch((err) => console.error(err));
               }
             }
             if (
               dayEnd > nextSessionTime &&
-              dayEnd - nextSessionTime > minimumSessionTime
+              dayEnd - nextSessionTime >= minimumSessionTime
             ) {
               firebase
                 .firestore()
@@ -157,6 +168,9 @@ export default function CalendarScreen({ route, navigation }) {
                   startDate: new Date(nextSessionTime),
                   endDate: new Date(dayEnd),
                   category: "Study Session",
+                  repeat: "None",
+                  repeatId: "",
+                  repeatDate: null,
                 })
                 .catch((err) => console.error(err));
             }
@@ -216,7 +230,6 @@ export default function CalendarScreen({ route, navigation }) {
                   userId: userId,
                   event: item,
                   categories: categories,
-                  onGoBack: refreshData,
                 })
               }
             >
@@ -279,7 +292,6 @@ export default function CalendarScreen({ route, navigation }) {
               isNewEvent: true,
               event: {},
               categories: categories,
-              onGoBack: refreshData,
             })
           }
         />
@@ -289,7 +301,6 @@ export default function CalendarScreen({ route, navigation }) {
           onPress={() =>
             navigation.navigate("CategoryList", {
               userId: userId,
-              onGoBack: refreshData,
             })
           }
         />

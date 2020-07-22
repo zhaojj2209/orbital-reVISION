@@ -1,13 +1,16 @@
-import { format } from "date-fns";
+import moment from "moment";
 
-export const formatTime = (date) => format(date, "h:mm a");
+export const formatTime = (date) => moment(date).format("h:mm A");
 
-export const formatDate = (date) => format(date, "iiii, dd MMM");
+export const formatDate = (date) => moment(date).format("dddd, DD MMM");
 
-export const formatDateString = (date) => format(date, "yyyy-MM-dd");
+export const formatDateString = (date) => moment(date).format("YYYY-MM-DD");
+
+export const formatDateDisplay = (date) =>
+  formatDate(date) + "   " + formatTime(date);
 
 export const newRoundedDate = () => {
-  const coeff = getMinutes(5);
+  const coeff = getMinutes(15);
   const date = new Date();
   return new Date(Math.round(date.getTime() / coeff) * coeff);
 };
