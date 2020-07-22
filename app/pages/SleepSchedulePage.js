@@ -9,6 +9,8 @@ import {
   Alert,
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import * as Permissions from "expo-permissions";
+import * as Notifications from "expo-notifications";
 
 import firebase from "../FirebaseDb";
 import { formatTime, getHours, today } from "../constants/DateFormats";
@@ -41,6 +43,31 @@ export default function SleepSchedulePage({ route, navigation }) {
         }
       })
       .catch((err) => console.error(err));
+    async function registerForPushNotif() {
+      const { status } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
+      let exisitingStatus = status;
+
+      if (exisitingStatus !== "granted") {
+        const { status } = await Permissions.askAsync(
+          Permissions.NOTIFICATIONS
+        );
+
+        exisitingStatus = status;
+      }
+      if (exisitingStatus !== "granted") {
+        Alert.alert("Permission not granted");
+        return;
+      }
+
+      let token = await Notifications.getExpoPushTokenAsync();
+      let uid = firebase.auth().currentUser.uid;
+      firebase
+        .database()
+        .ref("users")
+        .child(uid)
+        .update({ expoPushToken: token });
+    }
+    registerForPushNotif();
   }, [userId]);
 
   const handleEditSleepSchedule = () =>

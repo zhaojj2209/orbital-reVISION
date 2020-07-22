@@ -13,6 +13,8 @@ import {
 import { Formik } from "formik";
 import * as yup from "yup";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import firebase from "../FirebaseDb";
+import * as Notifications from "expo-notifications";
 
 import firebase from "../FirebaseDb";
 import {
@@ -64,7 +66,71 @@ export default function TaskInputPage({ route, navigation }) {
       }),
   });
 
-  const handleCreateTask = (values) =>
+  async function scheduleNotif(title, expectedCompletionTime, deadline) {
+    const identifier = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: title + " is due soon!",
+        body:
+          moment(deadline, "MMMM Do YYYY, h:mm a").diff(moment(), "minutes") /
+            60 <
+          expectedCompletionTime
+            ? "Deadline of task in " +
+              (
+                moment(deadline, "MMMM Do YYYY, h:mm a").diff(
+                  moment(),
+                  "minutes"
+                ) / 60
+              ).toFixed(2) +
+              " hour(s)"
+            : "Deadline of task in " + expectedCompletionTime + " hour(s)",
+      },
+      trigger:
+        moment(deadline, "MMMM Do YYYY, h:mm a").diff(moment(), "minutes") /
+          60 <
+        expectedCompletionTime
+          ? null
+          : moment(deadline, "MMMM Do YYYY, h:mm a")
+              .subtract({
+                hours: expectedCompletionTime,
+              })
+              .toDate(),
+    });
+    return identifier;
+  }
+
+  function getIdentifier() {
+    const oldIdentifier = "";
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .collection("tasks")
+      .doc(task.key)
+      .get()
+      .then((doc) => {
+        const { identifier } = doc.data();
+        oldIdentifier = identifier;
+        console.log(oldIdentifier);
+      });
+    return oldIdentifier;
+  }
+
+  async function rescheduleNotif(
+    oldIdentifier,
+    title,
+    expectedCompletionTime,
+    deadline
+  ) {
+    await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
+    return scheduleNotif(title, expectedCompletionTime, deadline);
+  }
+
+  const handleCreateTask = async (values) => {
+    let identifier = await scheduleNotif(
+      values.title,
+      values.expectedCompletionTime,
+      values.deadline
+    );
     tasksDb
       .add({
         title: values.title,
@@ -72,6 +138,7 @@ export default function TaskInputPage({ route, navigation }) {
         importance: values.importance,
         expectedCompletionTime: values.expectedCompletionTime,
         deadline: values.deadline,
+        identifier: identifier,
         repeat: values.repeat,
         repeatDate:
           values.repeat.slice(-8) != "until..." ? null : values.repeatDate,
@@ -85,8 +152,16 @@ export default function TaskInputPage({ route, navigation }) {
         ])
       )
       .catch((err) => console.error(err));
+  };
 
-  const handleEditTask = (values) =>
+  const handleEditTask = async (values) => {
+    const oldIdentifier = getIdentifier();
+    let newIdentifer = await rescheduleNotif(
+      oldIdentifier,
+      values.title,
+      values.expectedCompletionTime,
+      values.deadline
+    );
     tasksDb
       .doc(task.key)
       .set({
@@ -95,6 +170,7 @@ export default function TaskInputPage({ route, navigation }) {
         importance: values.importance,
         expectedCompletionTime: values.expectedCompletionTime,
         deadline: values.deadline,
+        identifier: newIdentifer,
         repeat: values.repeat,
         repeatDate:
           values.repeat.slice(-8) != "until..." ? null : values.repeatDate,
@@ -108,6 +184,15 @@ export default function TaskInputPage({ route, navigation }) {
         ])
       )
       .catch((err) => console.error(err));
+  };
+
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
 
   const handleShowDatePicker = () => {
     Keyboard.dismiss();
