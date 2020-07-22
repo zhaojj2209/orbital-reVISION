@@ -105,12 +105,24 @@ export default function TaskDetailsPage({ route, navigation }) {
           }
         />
         <Button
-          title="Completed"
+          title="Complete"
+          onPress={() =>
+            Alert.alert("Confirm complete?", "Task: " + title, [
+              {
+                text: "Yes",
+                onPress: () => handleRepeat(),
+              },
+              { text: "No", onPress: () => {} },
+            ])
+          }
+        />
+        <Button
+          title="Delete"
           onPress={() =>
             Alert.alert("Confirm delete?", "Task: " + title, [
               {
                 text: "Yes",
-                onPress: () => handleRepeat(),
+                onPress: () => handleDeleteTask(),
               },
               { text: "No", onPress: () => {} },
             ])
