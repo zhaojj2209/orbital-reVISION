@@ -11,6 +11,7 @@ import moment from "moment";
 
 import firebase from "../FirebaseDb";
 import { formatDate, formatDateDisplay } from "../constants/DateFormats";
+import * as Notifications from "expo-notifications";
 
 export default function TaskDetailsPage({ route, navigation }) {
   const { userId, item } = route.params;
@@ -30,7 +31,7 @@ export default function TaskDetailsPage({ route, navigation }) {
     .collection("tasks")
     .doc(item.key);
 
-  const handleRepeat = () => {
+  const handleRepeat = async () => {
     const interval =
       repeat.slice(0, 5) == "Daily"
         ? "days"
@@ -51,8 +52,16 @@ export default function TaskDetailsPage({ route, navigation }) {
     }
   };
 
-  const handleSetNextDeadline = (nextDeadline) => {
-    taskDoc.update({ deadline: nextDeadline }).then(
+  const handleSetNextDeadline = async (nextDeadline) => {
+    const oldIdentifier = getIdentifier();
+    let newIdentifer = await rescheduleNotif(
+      oldIdentifier,
+      title,
+      expectedCompletionTime,
+      nextDeadline
+    );
+
+    taskDoc.update({ deadline: nextDeadline, identifier: newIdentifer }).then(
       Alert.alert("Task deleted", "", [
         {
           text: "Ok",
@@ -62,7 +71,10 @@ export default function TaskDetailsPage({ route, navigation }) {
     );
   };
 
-  const handleDeleteTask = () => {
+  const handleDeleteTask = async () => {
+    const oldIdentifier = getIdentifier();
+    await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
+
     taskDoc.delete().then(
       Alert.alert("Task deleted", "", [
         {
@@ -72,6 +84,67 @@ export default function TaskDetailsPage({ route, navigation }) {
       ])
     );
   };
+  async function scheduleNotif(title, expectedCompletionTime, deadline) {
+    const identifier = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: title + " is due soon!",
+        body:
+          moment(deadline, "MMMM Do YYYY, h:mm a").diff(moment(), "minutes") /
+            60 <
+          expectedCompletionTime
+            ? "Deadline of task in " +
+              (
+                moment(deadline, "MMMM Do YYYY, h:mm a").diff(
+                  moment(),
+                  "minutes"
+                ) / 60
+              ).toFixed(2) +
+              " hour(s)"
+            : "Deadline of task in " + expectedCompletionTime + " hour(s)",
+      },
+      trigger:
+        moment(deadline, "MMMM Do YYYY, h:mm a").diff(moment(), "minutes") /
+          60 <
+        expectedCompletionTime
+          ? null
+          : moment(deadline, "MMMM Do YYYY, h:mm a")
+              .subtract({
+                hours: expectedCompletionTime,
+              })
+              .toDate(),
+    });
+    return identifier;
+  }
+  function getIdentifier() {
+    const oldIdentifier = "";
+    taskDoc.get().then((doc) => {
+      const { identifier } = doc.data();
+      oldIdentifier = identifier;
+      console.log(oldIdentifier);
+    });
+    return oldIdentifier;
+  }
+
+  async function rescheduleNotif(
+    oldIdentifier,
+    title,
+    expectedCompletionTime,
+    deadline
+  ) {
+    await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
+    return scheduleNotif(title, expectedCompletionTime, deadline);
+  }
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
+
+  function isNotRepeat() {
+    return repeat === "None";
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -107,25 +180,39 @@ export default function TaskDetailsPage({ route, navigation }) {
         <Button
           title="Complete"
           onPress={() =>
-            Alert.alert("Confirm complete?", "Task: " + title, [
-              {
-                text: "Yes",
-                onPress: () => handleRepeat(),
-              },
-              { text: "No", onPress: () => {} },
-            ])
+            Alert.alert(
+              "Confirm complete?",
+              isNotRepeat()
+                ? "Task: " + title
+                : "Next instance of task: " + title + " will be generated",
+              [
+                {
+                  text: "Yes",
+                  onPress: () => handleRepeat(),
+                },
+                { text: "No", onPress: () => {} },
+              ]
+            )
           }
         />
         <Button
           title="Delete"
           onPress={() =>
-            Alert.alert("Confirm delete?", "Task: " + title, [
-              {
-                text: "Yes",
-                onPress: () => handleDeleteTask(),
-              },
-              { text: "No", onPress: () => {} },
-            ])
+            Alert.alert(
+              "Confirm delete?",
+              isNotRepeat()
+                ? "Task: " + title
+                : "All future instances of task " +
+                    title +
+                    " will be deleted as well",
+              [
+                {
+                  text: "Yes",
+                  onPress: () => handleDeleteTask(),
+                },
+                { text: "No", onPress: () => {} },
+              ]
+            )
           }
         />
       </View>

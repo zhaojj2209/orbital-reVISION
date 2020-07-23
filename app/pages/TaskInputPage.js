@@ -16,8 +16,8 @@ import * as yup from "yup";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as Notifications from "expo-notifications";
 import moment from "moment";
-
 import firebase from "../FirebaseDb";
+
 import {
   newRoundedDate,
   formatDate,
@@ -100,18 +100,11 @@ export default function TaskInputPage({ route, navigation }) {
 
   function getIdentifier() {
     const oldIdentifier = "";
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("tasks")
-      .doc(task.key)
-      .get()
-      .then((doc) => {
-        const { identifier } = doc.data();
-        oldIdentifier = identifier;
-        console.log(oldIdentifier);
-      });
+    tasksDb.get().then((doc) => {
+      const { identifier } = doc.data();
+      oldIdentifier = identifier;
+      console.log(oldIdentifier);
+    });
     return oldIdentifier;
   }
 

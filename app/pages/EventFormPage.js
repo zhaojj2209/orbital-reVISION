@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from "moment";
+import * as Notifications from "expo-notifications";
 
 import firebase from "../FirebaseDb";
 import {
@@ -22,6 +23,7 @@ import {
   formatDate,
   today,
 } from "../constants/DateFormats";
+import { parse } from "date-fns";
 
 export default function EventFormPage({ route, navigation }) {
   const [title, setTitle] = useState("");
@@ -99,7 +101,15 @@ export default function EventFormPage({ route, navigation }) {
     }
   }, [event]);
 
-  const handleCreateEvent = () => {
+  const handleCreateEvent = async () => {
+    const validateImportance = (val) =>
+      typeof val === "string" &&
+      parseInt(val) < 6 &&
+      parseInt(val) > 0 &&
+      Number(val) - parseInt(val) === 0;
+    const validateExpectedTime = (val) =>
+      typeof val === "string" && !isNaN(Number(val));
+
     if (startDate >= endDate) {
       Alert.alert("Event duration invalid!", "", [
         {
@@ -107,7 +117,22 @@ export default function EventFormPage({ route, navigation }) {
           onPress: () => {},
         },
       ]);
+    } else if (
+      createTask &&
+      (!validateImportance(importance) ||
+        !validateExpectedTime(expectedCompletionTime))
+    ) {
+      if (validateImportance(importance)) {
+        Alert.alert("Task expected completion time must be a number!", "", [
+          { text: "OK", onPress: () => {} },
+        ]);
+      } else {
+        Alert.alert("Task importance must be an integer from 1 to 5!", "", [
+          { text: "OK", onPress: () => {} },
+        ]);
+      }
     } else {
+      let identifier = await scheduleEventNotif(title, startDate);
       eventsDb
         .add({
           title: title,
@@ -119,6 +144,7 @@ export default function EventFormPage({ route, navigation }) {
           repeatId: "",
           repeatDate: null,
           taskId: taskId,
+          identifier: identifier,
         })
         .then((doc) => {
           if (repeat != "None") {
@@ -149,7 +175,12 @@ export default function EventFormPage({ route, navigation }) {
     }
   };
 
-  const handleCreateTask = (id) =>
+  const handleCreateTask = async (id) => {
+    let identifier = await scheduleNotif(
+      title,
+      expectedCompletionTime,
+      startDate
+    );
     tasksDb
       .add({
         title: title,
@@ -159,6 +190,7 @@ export default function EventFormPage({ route, navigation }) {
         deadline: startDate,
         repeat: repeat,
         repeatDate: repeat == "None" ? null : repeatDate,
+        identifier: identifier,
       })
       .then((doc) => {
         eventsDb.doc(id).update({
@@ -166,6 +198,7 @@ export default function EventFormPage({ route, navigation }) {
         });
       })
       .catch((err) => console.error(err));
+  };
 
   const handleEditEvent = () => {
     if (startDate >= endDate) {
@@ -205,7 +238,13 @@ export default function EventFormPage({ route, navigation }) {
     }
   };
 
-  const editEvents = () => {
+  const editEvents = async () => {
+    let oldIdentifier = getIdentifier();
+    const newIdentifier = await rescheduleEventNotif(
+      oldIdentifier,
+      title,
+      startDate
+    );
     eventsDb
       .doc(event.key)
       .set({
@@ -218,6 +257,7 @@ export default function EventFormPage({ route, navigation }) {
         repeatId: "",
         repeatDate: null,
         taskId: taskId,
+        identifier: newIdentifier,
       })
       .then(() => {
         if (repeat != "None") {
@@ -245,10 +285,12 @@ export default function EventFormPage({ route, navigation }) {
       .catch((err) => console.error(err));
   };
 
-  const editTask = () => {
+  const editTask = async () => {
     if (createTask && taskId == null) {
       handleCreateTask(event.key);
     } else if (!createTask && taskId != null) {
+      let identifier = getTaskIdentifier();
+      await Notifications.cancelScheduledNotificationAsync(identifier);
       tasksDb
         .doc(taskId)
         .delete()
@@ -258,6 +300,13 @@ export default function EventFormPage({ route, navigation }) {
           });
         });
     } else if (createTask && taskId != null) {
+      let oldIdentifier = getTaskIdentifier();
+      await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
+      let newIdentifier = scheduleNotif(
+        title,
+        expectedCompletionTime,
+        startDate
+      );
       tasksDb.doc(taskId).set({
         title: title,
         description: description,
@@ -266,11 +315,102 @@ export default function EventFormPage({ route, navigation }) {
         deadline: startDate,
         repeat: repeat,
         repeatDate: repeat == "None" ? null : repeatDate,
+        identifier: newIdentifier,
       });
     }
   };
 
-  const createRepeatedEvents = (repeatId) => {
+  async function scheduleEventNotif(title, startDate) {
+    const identifier = await Notifications.scheduleNotificationAsync({
+      content: {
+        title:
+          title +
+          " is in " +
+          (moment(startDate, "T00:00:00.000+08:00").diff(moment(), "minutes") <
+          30
+            ? moment(startDate, "T00:00:00.000+08:00").diff(
+                moment(),
+                "minutes"
+              ) + " minutes!"
+            : "30 minutes!"),
+      },
+      trigger:
+        moment(startDate, "T00:00:00.000+08:00").diff(moment(), "minutes") < 30
+          ? null
+          : moment(startDate, "T00:00:00.000+08:00")
+              .subtract({ minutes: 30 })
+              .toDate(),
+    });
+    return identifier;
+  }
+
+  async function scheduleNotif(title, expectedCompletionTime, deadline) {
+    const identifier = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: title + " is due soon!",
+        body:
+          moment(deadline, "MMMM Do YYYY, h:mm a").diff(moment(), "minutes") /
+            60 <
+          expectedCompletionTime
+            ? "Deadline of task in " +
+              (
+                moment(deadline, "MMMM Do YYYY, h:mm a").diff(
+                  moment(),
+                  "minutes"
+                ) / 60
+              ).toFixed(2) +
+              " hour(s)"
+            : "Deadline of task in " + expectedCompletionTime + " hour(s)",
+      },
+      trigger:
+        moment(deadline, "MMMM Do YYYY, h:mm a").diff(moment(), "minutes") /
+          60 <
+        expectedCompletionTime
+          ? null
+          : moment(deadline, "MMMM Do YYYY, h:mm a")
+              .subtract({
+                hours: expectedCompletionTime,
+              })
+              .toDate(),
+    });
+    return identifier;
+  }
+
+  function getIdentifier() {
+    const oldIdentifier = "";
+    eventsDb.get().then((doc) => {
+      const { identifier } = doc.data();
+      oldIdentifier = identifier;
+      console.log(oldIdentifier);
+    });
+    return oldIdentifier;
+  }
+  function getTaskIdentifier() {
+    const oldIdentifier = "";
+    tasksDb.get().then((doc) => {
+      const { identifier } = doc.data();
+      oldIdentifier = identifier;
+      console.log(oldIdentifier);
+    });
+    return oldIdentifier;
+  }
+
+  async function rescheduleEventNotif(oldIdentifier, title, startDate) {
+    await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
+    return scheduleEventNotif(title, startDate);
+  }
+  async function deleteNotif(oldIdentifier) {
+    await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
+  }
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
+
+  const createRepeatedEvents = async (repeatId) => {
     const interval =
       repeat == "Daily"
         ? "days"
@@ -283,6 +423,7 @@ export default function EventFormPage({ route, navigation }) {
       let nextStartDate = moment(startDate).add(1, interval);
       let nextEndDate = moment(endDate).add(1, interval);
       while (nextStartDate < repeatDate) {
+        let identifier = await scheduleEventNotif(title, nextStartDate);
         eventsDb
           .add({
             title: title,
@@ -293,6 +434,7 @@ export default function EventFormPage({ route, navigation }) {
             repeat: repeat,
             repeatId: repeatId,
             repeatDate: repeatDate,
+            identifier: identifier,
           })
           .catch((err) => console.error(err));
         nextStartDate.add(1, interval);
