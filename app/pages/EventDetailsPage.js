@@ -22,9 +22,11 @@ export default function EventDetailsPage({ route, navigation }) {
     repeat,
     repeatDate,
     repeatId,
+    identifier,
   } = event.data;
 
-  const handleDeleteEvent = () => {
+  const handleDeleteEvent = async () => {
+    await Notifications.cancelScheduledNotificationAsync(identifier);
     firebase
       .firestore()
       .collection("users")
@@ -51,7 +53,10 @@ export default function EventDetailsPage({ route, navigation }) {
       .where("repeatId", "==", repeatId)
       .get()
       .then((querySnapshot) => {
-        querySnapshot.docs.forEach((documentSnapshot) => {
+        querySnapshot.docs.forEach(async (documentSnapshot) => {
+          await Notifications.cancelScheduledNotificationAsync(
+            documentSnapshot.data().identifier
+          );
           documentSnapshot.ref.delete();
         });
       })

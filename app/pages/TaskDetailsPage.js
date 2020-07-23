@@ -23,6 +23,7 @@ export default function TaskDetailsPage({ route, navigation }) {
     expectedCompletionTime,
     repeat,
     repeatDate,
+    identifier,
   } = item.data;
   const taskDoc = firebase
     .firestore()
@@ -53,9 +54,8 @@ export default function TaskDetailsPage({ route, navigation }) {
   };
 
   const handleSetNextDeadline = async (nextDeadline) => {
-    const oldIdentifier = getIdentifier();
     let newIdentifer = await rescheduleNotif(
-      oldIdentifier,
+      identifier,
       title,
       expectedCompletionTime,
       nextDeadline
@@ -72,17 +72,16 @@ export default function TaskDetailsPage({ route, navigation }) {
   };
 
   const handleDeleteTask = async () => {
-    const oldIdentifier = getIdentifier();
-    await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
+    await Notifications.cancelScheduledNotificationAsync(identifier);
 
-    taskDoc.delete().then(
+    taskDoc.delete().then(() => {
       Alert.alert("Task deleted", "", [
         {
           text: "Ok",
           onPress: () => navigation.navigate("TaskList"),
         },
-      ])
-    );
+      ]);
+    });
   };
   async function scheduleNotif(title, expectedCompletionTime, deadline) {
     const identifier = await Notifications.scheduleNotificationAsync({
@@ -114,15 +113,6 @@ export default function TaskDetailsPage({ route, navigation }) {
               .toDate(),
     });
     return identifier;
-  }
-  function getIdentifier() {
-    const oldIdentifier = "";
-    taskDoc.get().then((doc) => {
-      const { identifier } = doc.data();
-      oldIdentifier = identifier;
-      console.log(oldIdentifier);
-    });
-    return oldIdentifier;
   }
 
   async function rescheduleNotif(
