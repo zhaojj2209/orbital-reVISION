@@ -103,7 +103,6 @@ export default function TaskInputPage({ route, navigation }) {
     tasksDb.get().then((doc) => {
       const { identifier } = doc.data();
       oldIdentifier = identifier;
-      console.log(oldIdentifier);
     });
     return oldIdentifier;
   }

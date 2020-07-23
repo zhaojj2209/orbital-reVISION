@@ -23,7 +23,6 @@ import {
   formatDate,
   today,
 } from "../constants/DateFormats";
-import { parse } from "date-fns";
 
 export default function EventFormPage({ route, navigation }) {
   const [title, setTitle] = useState("");
@@ -101,15 +100,16 @@ export default function EventFormPage({ route, navigation }) {
     }
   }, [event]);
 
-  const handleCreateEvent = async () => {
-    const validateImportance = (val) =>
-      typeof val === "string" &&
-      parseInt(val) < 6 &&
-      parseInt(val) > 0 &&
-      Number(val) - parseInt(val) === 0;
-    const validateExpectedTime = (val) =>
-      typeof val === "string" && !isNaN(Number(val));
+  const validateImportance = (val) =>
+    typeof val === "string" &&
+    parseInt(val) < 6 &&
+    parseInt(val) > 0 &&
+    Number(val) - parseInt(val) === 0;
 
+  const validateExpectedTime = (val) =>
+    typeof val === "string" && !isNaN(Number(val));
+
+  const handleCreateEvent = async () => {
     if (startDate >= endDate) {
       Alert.alert("Event duration invalid!", "", [
         {
@@ -208,6 +208,20 @@ export default function EventFormPage({ route, navigation }) {
           onPress: () => {},
         },
       ]);
+    } else if (
+      createTask &&
+      (!validateImportance(importance) ||
+        !validateExpectedTime(expectedCompletionTime))
+    ) {
+      if (validateImportance(importance)) {
+        Alert.alert("Task expected completion time must be a number!", "", [
+          { text: "OK", onPress: () => {} },
+        ]);
+      } else {
+        Alert.alert("Task importance must be an integer from 1 to 5!", "", [
+          { text: "OK", onPress: () => {} },
+        ]);
+      }
     } else if (prevRepeatStatus != "None") {
       Alert.alert(
         "Change all repeated events?",
