@@ -101,47 +101,49 @@ export default function EventDetailsPage({ route, navigation }) {
         <Text style={styles.text}>{endDateString}</Text>
         <Text style={styles.text}>{categoryString()}</Text>
         <Text style={styles.text}>{repeatString}</Text>
-        <Button
-          title="Edit"
-          onPress={() =>
-            navigation.navigate("EventForm", {
-              userId: userId,
-              isNewEvent: false,
-              event: event,
-              categories: categories,
-            })
-          }
-        />
-        <Button
-          title="Delete"
-          onPress={() =>
-            repeat == "None"
-              ? Alert.alert("Confirm delete?", "Event: " + title, [
-                  {
-                    text: "OK",
-                    onPress: () => handleDeleteEvent(),
-                  },
-                  {
-                    text: "Cancel",
-                    onPress: () => {},
-                  },
-                ])
-              : Alert.alert("Delete all repeated events?", "", [
-                  {
-                    text: "All events",
-                    onPress: () => handleDeleteAllEvents(),
-                  },
-                  {
-                    text: "This event",
-                    onPress: () => handleDeleteEvent(),
-                  },
-                  {
-                    text: "Cancel",
-                    onPress: () => {},
-                  },
-                ])
-          }
-        />
+        <View style={styles.buttonRow}>
+          <Button
+            title="Edit"
+            onPress={() =>
+              navigation.navigate("EventForm", {
+                userId: userId,
+                isNewEvent: false,
+                event: event,
+                categories: categories,
+              })
+            }
+          />
+          <Button
+            title="Delete"
+            onPress={() =>
+              repeat == "None"
+                ? Alert.alert("Confirm delete?", "Event: " + title, [
+                    {
+                      text: "OK",
+                      onPress: () => handleDeleteEvent(),
+                    },
+                    {
+                      text: "Cancel",
+                      onPress: () => {},
+                    },
+                  ])
+                : Alert.alert("Delete all repeated events?", "", [
+                    {
+                      text: "All events",
+                      onPress: () => handleDeleteAllEvents(),
+                    },
+                    {
+                      text: "This event",
+                      onPress: () => handleDeleteEvent(),
+                    },
+                    {
+                      text: "Cancel",
+                      onPress: () => {},
+                    },
+                  ])
+            }
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -161,5 +163,11 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     padding: 10,
+    color: "#07689f",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 10,
   },
 });

@@ -364,8 +364,8 @@ const styles = StyleSheet.create({
   },
   event: {
     backgroundColor: "#f9c2ff",
-    padding: 20,
-    marginHorizontal: 20,
+    padding: 10,
+    marginHorizontal: 10,
     marginVertical: 10,
     borderRadius: 6,
     elevation: 3,

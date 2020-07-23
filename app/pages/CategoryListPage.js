@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   FlatList,
   Alert,
+  Dimensions,
 } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 
@@ -80,63 +81,65 @@ export default function CategoryList({ route, navigation }) {
 
   return isLoaded ? (
     <SafeAreaView style={styles.container}>
-      <FlatList
-        data={categories}
-        renderItem={({ item }) => (
-          <View
-            style={StyleSheet.flatten([
-              styles.card,
-              { backgroundColor: item.data.colour },
-            ])}
-          >
-            <Text style={styles.text}>{item.data.title}</Text>
-            <View style={styles.buttonRow}>
-              <Button
-                title="Edit"
-                style={styles.button}
-                onPress={() =>
-                  navigation.navigate("CategoryForm", {
-                    userId: userId,
-                    isNewCategory: false,
-                    category: item,
-                  })
-                }
-              />
-              <Button
-                title="Delete"
-                style={styles.button}
-                onPress={() =>
-                  Alert.alert(
-                    "Confirm delete?",
-                    "This will delete all events in the category as well!",
-                    [
-                      {
-                        text: "OK",
-                        onPress: () => handleDeleteCategory(item.key),
-                      },
-                      {
-                        text: "Cancel",
-                        onPress: () => {},
-                      },
-                    ]
-                  )
-                }
-              />
+      <View style={styles.box}>
+        <FlatList
+          data={categories}
+          renderItem={({ item }) => (
+            <View
+              style={StyleSheet.flatten([
+                styles.card,
+                { backgroundColor: item.data.colour },
+              ])}
+            >
+              <Text style={styles.text}>{item.data.title}</Text>
+              <View style={styles.buttonRow}>
+                <Button
+                  title="Edit"
+                  style={styles.button}
+                  onPress={() =>
+                    navigation.navigate("CategoryForm", {
+                      userId: userId,
+                      isNewCategory: false,
+                      category: item,
+                    })
+                  }
+                />
+                <Button
+                  title="Delete"
+                  style={styles.button}
+                  onPress={() =>
+                    Alert.alert(
+                      "Confirm delete?",
+                      "This will delete all events in the category as well!",
+                      [
+                        {
+                          text: "OK",
+                          onPress: () => handleDeleteCategory(item.key),
+                        },
+                        {
+                          text: "Cancel",
+                          onPress: () => {},
+                        },
+                      ]
+                    )
+                  }
+                />
+              </View>
             </View>
-          </View>
-        )}
-      />
-      <Button
-        title="Create New Category"
-        style={styles.button}
-        onPress={() =>
-          navigation.navigate("CategoryForm", {
-            userId: userId,
-            isNewCategory: true,
-            category: {},
-          })
-        }
-      />
+          )}
+        />
+        <Button
+          title="Create New Category"
+          style={styles.button}
+          onPress={() =>
+            navigation.navigate("CategoryForm", {
+              userId: userId,
+              isNewCategory: true,
+              category: {},
+            })
+          }
+        />
+      </View>
     </SafeAreaView>
   ) : (
     <ActivityIndicator />
@@ -150,6 +153,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "space-around",
+    backgroundColor: "#fafafa",
   },
   card: {
     borderRadius: 6,
@@ -158,9 +162,11 @@ const styles = StyleSheet.create({
     shadowColor: "#333",
     shadowOpacity: 0.3,
     margin: 6,
-    width: 350,
+    width: Dimensions.get("window").width - 44,
     backgroundColor: "#f9c2ff",
   },
+  box: { marginTop: 10, paddingHorizontal: 18 },
+
   buttonRow: {
     flexDirection: "row",
     justifyContent: "space-around",

@@ -10,6 +10,7 @@ import {
   Keyboard,
   Alert,
   Picker,
+  ScrollView,
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from "moment";
@@ -510,6 +511,7 @@ export default function EventFormPage({ route, navigation }) {
           placeholder="Event"
           onChangeText={handleUpdateTitle}
           value={title}
+          placeholderTextColor="#a2d5f2"
         />
         <TextInput
           multiline
@@ -517,17 +519,22 @@ export default function EventFormPage({ route, navigation }) {
           placeholder="Description"
           onChangeText={handleUpdateDescription}
           value={description}
+          placeholderTextColor="#a2d5f2"
         />
         <View style={styles.dates}>
           <Text style={styles.dateText}>Start: </Text>
           <TouchableOpacity onPress={() => showPicker(true)}>
-            <Text style={styles.dateText}>{formatDateDisplay(startDate)}</Text>
+            <Text style={styles.touchableText}>
+              {formatDateDisplay(startDate)}
+            </Text>
           </TouchableOpacity>
         </View>
         <View style={styles.dates}>
           <Text style={styles.dateText}>End: </Text>
           <TouchableOpacity onPress={() => showPicker(false)}>
-            <Text style={styles.dateText}>{formatDateDisplay(endDate)}</Text>
+            <Text style={styles.touchableText}>
+              {formatDateDisplay(endDate)}
+            </Text>
           </TouchableOpacity>
         </View>
         <DateTimePickerModal
@@ -543,7 +550,9 @@ export default function EventFormPage({ route, navigation }) {
         />
         <View style={styles.dates}>
           <Text style={styles.dateText}>Category:</Text>
-          <Button onPress={handleToggleCategoryPicker} title={categoryName} />
+          <TouchableOpacity onPress={handleToggleCategoryPicker}>
+            <Text style={styles.touchableText}>{categoryName}</Text>
+          </TouchableOpacity>
         </View>
         {showCategoryPicker && (
           <Picker
@@ -560,13 +569,18 @@ export default function EventFormPage({ route, navigation }) {
               );
             }}
           >
-            <Picker.Item label="None" value="" />
-            <Picker.Item label="Study Session" value="Study Session" />
+            <Picker.Item label="None" value="" color="#07689f" />
+            <Picker.Item
+              label="Study Session"
+              value="Study Session"
+              color="#07689f"
+            />
             {categories.map((cat) => (
               <Picker.Item
                 label={cat.data.title}
                 value={cat.key}
                 key={cat.key}
+                color="#07689f"
               />
             ))}
           </Picker>
@@ -574,14 +588,14 @@ export default function EventFormPage({ route, navigation }) {
         <View style={styles.dates}>
           <Text style={styles.dateText}>Repeat:</Text>
           <TouchableOpacity onPress={handleToggleRepeatPicker}>
-            <Text style={styles.dateText}>{repeat}</Text>
+            <Text style={styles.touchableText}>{repeat}</Text>
           </TouchableOpacity>
         </View>
         {repeat != "None" && (
           <View style={styles.dates}>
             <Text style={styles.dateText}>Repeat until:</Text>
             <TouchableOpacity onPress={toggleRepeatDatePicker}>
-              <Text style={styles.dateText}>{formatDate(repeatDate)}</Text>
+              <Text style={styles.touchableText}>{formatDate(repeatDate)}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -601,10 +615,10 @@ export default function EventFormPage({ route, navigation }) {
             style={{ width: 350 }}
             onValueChange={(itemValue, itemIndex) => setRepeat(itemValue)}
           >
-            <Picker.Item label="None" value="None" />
-            <Picker.Item label="Daily" value="Daily" />
-            <Picker.Item label="Weekly" value="Weekly" />
-            <Picker.Item label="Monthly" value="Monthly" />
+            <Picker.Item label="None" value="None" color="#07689f" />
+            <Picker.Item label="Daily" value="Daily" color="#07689f" />
+            <Picker.Item label="Weekly" value="Weekly" color="#07689f" />
+            <Picker.Item label="Monthly" value="Monthly" color="#07689f" />
           </Picker>
         )}
         <View style={styles.dates}>
@@ -624,35 +638,39 @@ export default function EventFormPage({ route, navigation }) {
             onChangeText={setImportance}
             value={importance}
             keyboardType="numeric"
+            placeholderTextColor="#a2d5f2"
           />
         )}
         {createTask && (
           <TextInput
             style={styles.textInput}
+            placeholderTextColor="#a2d5f2"
             placeholder="Expected Completion Time (hours)"
             onChangeText={setExpectedCompletionTime}
             value={expectedCompletionTime}
             keyboardType="numeric"
           />
         )}
-        <Button
-          title={isNewEvent ? "Create Event" : "Edit Event"}
-          onPress={() => {
-            if (title.length) {
-              if (isNewEvent) {
-                handleCreateEvent();
+        <View style={styles.button}>
+          <Button
+            title={isNewEvent ? "Create Event" : "Edit Event"}
+            onPress={() => {
+              if (title.length) {
+                if (isNewEvent) {
+                  handleCreateEvent();
+                } else {
+                  handleEditEvent();
+                }
               } else {
-                handleEditEvent();
+                Alert.alert(
+                  "Event cannot be saved!",
+                  "Event title cannot be blank",
+                  [{ text: "OK", onPress: () => {} }]
+                );
               }
-            } else {
-              Alert.alert(
-                "Event cannot be saved!",
-                "Event title cannot be blank",
-                [{ text: "OK", onPress: () => {} }]
-              );
-            }
-          }}
-        />
+            }}
+          />
+        </View>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -663,6 +681,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#fafafa",
   },
   dates: {
     flexDirection: "row",
@@ -672,13 +691,25 @@ const styles = StyleSheet.create({
   dateText: {
     padding: 10,
     fontSize: 20,
+    color: "#07689f",
   },
+  touchableText: {
+    padding: 10,
+    fontSize: 20,
+    color: "#ff7e67",
+  },
+
   textInput: {
-    borderWidth: 1,
-    borderColor: "black",
+    borderWidth: 1.2,
+    borderColor: "#07689f",
     fontSize: 20,
     padding: 10,
     width: 300,
-    margin: 12,
+    borderRadius: 2,
+    color: "#07689f",
+    marginTop: 18,
+  },
+  button: {
+    margin: 20,
   },
 });

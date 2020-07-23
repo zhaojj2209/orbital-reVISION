@@ -17,6 +17,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as Notifications from "expo-notifications";
 import moment from "moment";
 import firebase from "../FirebaseDb";
+// import FloatingLabelInput from "../constants/FloatingTextInout";
 
 import {
   newRoundedDate,
@@ -46,10 +47,10 @@ export default function TaskInputPage({ route, navigation }) {
   };
 
   const inputSchema = yup.object({
-    title: yup.string().required(),
+    title: yup.string().required("Title cannot be left blank!"),
     importance: yup
       .string()
-      .required()
+      .required("Importance cannot be left blank!")
       .test("is-num-1-5", "Input must be integer from 1 - 5", (val) => {
         return (
           parseInt(val) < 6 &&
@@ -60,7 +61,7 @@ export default function TaskInputPage({ route, navigation }) {
 
     expectedCompletionTime: yup
       .string()
-      .required()
+      .required("Required time cannot be left blank!")
       .test("isNumber", "Input must be a number", (val) => {
         return !isNaN(Number(val));
       }),
@@ -259,18 +260,22 @@ export default function TaskInputPage({ route, navigation }) {
                 onChangeText={handleChange("title")}
                 value={values.title}
                 onBlur={handleBlur("title")}
+                placeholderTextColor="#a2d5f2"
               />
               <Text style={styles.errorText}>
+                {" "}
                 {touched.title && errors.title}
               </Text>
+
               <TextInput
                 style={styles.textInput}
                 multiline
                 placeholder="Description (Optional)"
                 onChangeText={handleChange("description")}
                 value={values.description}
+                placeholderTextColor="#a2d5f2"
               />
-              <Text style={styles.errorText}>{errors.description}</Text>
+              <Text style={styles.errorText}> </Text>
               <TextInput
                 style={styles.textInput}
                 placeholder="Importance (1 - 5)"
@@ -278,23 +283,25 @@ export default function TaskInputPage({ route, navigation }) {
                 value={values.importance}
                 keyboardType="numeric"
                 onBlur={handleBlur("importance")}
+                placeholderTextColor="#a2d5f2"
               />
               <Text style={styles.errorText}>
-                {touched.importance && errors.importance}
+                {touched.importance && errors.importance}{" "}
               </Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="Expected Completion Time (hours)"
+                placeholder="Required Time (hours)"
                 onChangeText={handleChange("expectedCompletionTime")}
                 value={values.expectedCompletionTime}
                 keyboardType="numeric"
                 onBlur={handleBlur("expectedCompletionTime")}
+                placeholderTextColor="#a2d5f2"
               />
               <Text style={styles.errorText}>
                 {touched.expectedCompletionTime &&
-                  errors.expectedCompletionTime}
+                  errors.expectedCompletionTime}{" "}
               </Text>
-              <View style={styles.dates}>
+              <View style={styles.topDates}>
                 <Text style={styles.dateText}>Deadline: </Text>
                 <TouchableOpacity onPress={handleShowDatePicker}>
                   <Text style={styles.dateText}>
@@ -376,21 +383,44 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#fafafa",
+  },
+  topDates: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    marginTop: 10,
+    paddingLeft: 10,
+    paddingRight: 10,
   },
   dates: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "space-around",
+    marginTop: 15,
+    paddingLeft: 10,
+    paddingRight: 10,
   },
+
   textInput: {
-    borderWidth: 1,
-    borderColor: "black",
+    borderWidth: 1.2,
+    borderColor: "#07689f",
     fontSize: 20,
     padding: 10,
     width: 300,
+    borderRadius: 2,
+    color: "#07689f",
+    marginTop: 10,
   },
   dateText: {
-    fontSize: 20,
+    fontSize: 18,
+    color: "#07689f",
   },
-  errorText: { marginBottom: 10, marginTop: 6, textAlign: "center" },
+  errorText: {
+    marginBottom: 0,
+    marginTop: 2,
+    textAlign: "center",
+    fontSize: 14,
+    color: "#fb4444",
+  },
 });
