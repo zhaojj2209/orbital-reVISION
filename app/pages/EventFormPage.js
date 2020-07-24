@@ -434,7 +434,7 @@ export default function EventFormPage({ route, navigation }) {
     if (interval.length) {
       let nextStartDate = moment(startDate).add(1, interval);
       let nextEndDate = moment(endDate).add(1, interval);
-      while (nextStartDate < repeatDate) {
+      while (nextStartDate < moment(repeatDate).add(1, "days").toDate()) {
         let identifier = await scheduleEventNotif(title, nextStartDate);
         eventsDb
           .add({

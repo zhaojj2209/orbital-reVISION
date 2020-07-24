@@ -12,7 +12,7 @@ import {
 import moment from "moment";
 import { useIsFocused } from "@react-navigation/native";
 
-import { getTasksDb, getSleepSchedule } from "../FirebaseDb";
+import firebase, { getTasksDb, getSleepSchedule } from "../FirebaseDb";
 import { formatDateDisplay, getHours } from "../constants/DateFormats";
 import { taskColours } from "../constants/Colours";
 

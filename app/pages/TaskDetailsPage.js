@@ -39,7 +39,10 @@ export default function TaskDetailsPage({ route, navigation }) {
         : "";
     if (interval.length) {
       const nextDeadline = moment(deadline).add(1, interval);
-      if (repeatDate != null && nextDeadline.isAfter(moment(repeatDate))) {
+      if (
+        repeatDate != null &&
+        nextDeadline.isAfter(moment(repeatDate).add(1, "days"))
+      ) {
         handleDeleteTask();
       } else {
         handleSetNextDeadline(nextDeadline.toDate());

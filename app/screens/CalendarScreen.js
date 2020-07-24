@@ -13,10 +13,9 @@ import { useIsFocused } from "@react-navigation/native";
 import * as Notifications from "expo-notifications";
 import moment from "moment";
 
-import {
+import firebase, {
   getEventsDb,
   getCategoriesDb,
-  getTasksDb,
   getSleepSchedule,
 } from "../FirebaseDb";
 import {
