@@ -7,6 +7,7 @@ import {
   Button,
   FlatList,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import moment from "moment";
 import { useIsFocused } from "@react-navigation/native";
@@ -94,53 +95,56 @@ export default function TaskListScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <FlatList
-        data={tasks}
-        renderItem={({ item }) => (
-          <View>
+      <View style={styles.box}>
+        <FlatList
+          data={tasks}
+          renderItem={({ item }) => (
             <View>
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("TaskDetails", {
-                    userId,
-                    item,
-                  })
-                }
-                style={StyleSheet.flatten([
-                  styles.card,
-                  { backgroundColor: item.color },
-                ])}
-              >
-                <Text style={styles.title}> {item.data.title}</Text>
-                <Text style={styles.deadline}>
-                  {formatDateDisplay(item.data.deadline)}
-                </Text>
-              </TouchableOpacity>
+              <View>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate("TaskDetails", {
+                      userId,
+                      item,
+                    })
+                  }
+                  style={StyleSheet.flatten([
+                    styles.card,
+                    { backgroundColor: item.color, flexDirection: "column" },
+                  ])}
+                >
+                  <Text style={styles.title}> {item.data.title}</Text>
+                  <Text style={styles.deadline}>
+                    {formatDateDisplay(item.data.deadline)}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        )}
-      />
-      <View style={styles.buttonRow}>
-        <Button
-          title="Add Tasks"
-          onPress={() => {
-            navigation.navigate("TaskInput", {
-              userId: userId,
-              isNewTask: true,
-              task: null,
-            });
-          }}
+          )}
         />
-        <Button
-          title="Logout"
-          style={styles.button}
-          onPress={() =>
-            firebase
-              .auth()
-              .signOut()
-              .then(() => navigation.navigate("Login"))
-          }
-        />
+
+        <View style={styles.buttonRow}>
+          <Button
+            title="Add Tasks"
+            onPress={() => {
+              navigation.navigate("TaskInput", {
+                userId: userId,
+                isNewTask: true,
+                task: null,
+              });
+            }}
+          />
+          <Button
+            title="Logout"
+            style={styles.button}
+            onPress={() =>
+              firebase
+                .auth()
+                .signOut()
+                .then(() => navigation.navigate("Login"))
+            }
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -151,19 +155,21 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#fafafa",
   },
+  box: { marginTop: 24, paddingHorizontal: 18 },
   card: {
     borderRadius: 6,
     elevation: 3,
     shadowOffset: { width: 1, height: 1 },
     shadowColor: "#333",
     shadowOpacity: 0.3,
+    width: Dimensions.get("window").width - 44,
     margin: 6,
-    width: 350,
   },
 
-  title: { fontSize: 20, padding: 10 },
-  deadline: { fontSize: 14, margin: 10 },
+  title: { fontSize: 20, paddingLeft: 10, paddingVertical: 10 },
+  deadline: { fontSize: 14, paddingLeft: 16, paddingBottom: 10 },
 
   details: {
     padding: 40,

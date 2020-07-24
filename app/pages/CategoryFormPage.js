@@ -88,6 +88,7 @@ export default function CategoryFormPage({ route, navigation }) {
           placeholder="Event"
           onChangeText={handleUpdateTitle}
           value={title}
+          placeholderTextColor="#a2d5f2"
         />
         <View style={styles.colour}>
           <Text style={styles.colourText}>Colour:</Text>
@@ -191,6 +192,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#fafafa",
   },
   colour: {
     flexDirection: "row",
@@ -198,19 +200,21 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "space-evenly",
   },
-  colourText: { fontSize: 18, padding: 25 },
+  colourText: { fontSize: 18, padding: 25, color: "#07689f" },
   colourBox: {
     width: 74,
     height: 50,
     borderRadius: 10,
   },
-
   textInput: {
-    borderWidth: 1,
-    borderColor: "black",
+    borderWidth: 1.2,
+    borderColor: "#07689f",
     fontSize: 20,
     padding: 10,
     width: 300,
+    borderRadius: 2,
+    color: "#07689f",
+    marginTop: 10,
   },
   pickerText: {
     fontSize: 40,

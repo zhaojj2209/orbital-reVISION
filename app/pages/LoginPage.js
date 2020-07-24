@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, Component } from "react";
 import {
   View,
   TextInput,
@@ -7,9 +7,12 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
+  StatusBar,
+  Text,
 } from "react-native";
 
 import firebase from "../FirebaseDb";
+import globalStyles from "../constants/GlobalStyles";
 
 export default function LoginPage({ navigation }) {
   const [email, setEmail] = useState("");
@@ -57,10 +60,12 @@ export default function LoginPage({ navigation }) {
           placeholder="Email"
           onChangeText={handleUpdateEmail}
           value={email}
+          placeholderTextColor="#a2d5f2"
         />
         <TextInput
           style={styles.textInput}
           placeholder="Password"
+          placeholderTextColor="#a2d5f2"
           secureTextEntry
           onChangeText={handleUpdatePassword}
           value={password}
@@ -82,17 +87,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#fafafa",
   },
   textInput: {
-    borderWidth: 1,
-    borderColor: "black",
+    borderWidth: 1.5,
+    borderColor: "#07689f",
     fontSize: 20,
     padding: 10,
     width: 300,
-    margin: 12,
-    borderRadius: 0,
+    borderRadius: 2,
+    color: "#07689f",
+    margin: 10,
   },
+
   bottomButton: {
-    marginTop: 100,
+    marginTop: 90,
   },
 });

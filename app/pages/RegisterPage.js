@@ -80,12 +80,14 @@ export default function RegisterPage({ navigation }) {
           style={styles.textInput}
           placeholder="Username"
           onChangeText={handleUpdateUsername}
+          placeholderTextColor="#a2d5f2"
           value={username}
         />
         <TextInput
           style={styles.textInput}
           placeholder="Email"
           onChangeText={handleUpdateEmail}
+          placeholderTextColor="#a2d5f2"
           value={email}
         />
         <TextInput
@@ -93,13 +95,12 @@ export default function RegisterPage({ navigation }) {
           style={styles.textInput}
           placeholder="Password"
           onChangeText={handleUpdatePassword}
+          placeholderTextColor="#a2d5f2"
           value={password}
         />
-        <Button
-          title="Register"
-          style={styles.button}
-          onPress={validateRegistrationInput}
-        />
+        <View style={styles.button}>
+          <Button title="Register" onPress={validateRegistrationInput} />
+        </View>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -110,19 +111,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  image: {
-    marginBottom: 40,
+    backgroundColor: "#fafafa",
   },
   textInput: {
-    borderWidth: 1,
-    borderColor: "black",
+    borderWidth: 1.5,
+    borderColor: "#07689f",
     fontSize: 20,
     padding: 10,
     width: 300,
-    margin: 12,
+    borderRadius: 2,
+    color: "#07689f",
+    margin: 10,
   },
   button: {
-    marginTop: 42,
+    marginTop: 75,
   },
 });

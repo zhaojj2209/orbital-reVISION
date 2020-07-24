@@ -5412,6 +5412,13 @@ react-native-calendars@^1.300.0:
     react-native-swipe-gestures "^1.0.5"
     xdate "^0.8.0"
 
+react-native-floating-title-text-input@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/react-native-floating-title-text-input/-/react-native-floating-title-text-input-1.0.7.tgz#c26f94a3b40ae5489cad54f4d8825e44916c66b9"
+  integrity sha512-fp+UrKEknOXVlMxNEtNSoWMP9vEqD36h51LCMRBXGvQKJr57x7AmKfiQzCv6j/szXMt9OJzUU41gKGSw8yF5zg==
+  dependencies:
+    prop-types "^15.5.10"
+
 react-native-gesture-handler@~1.6.0:
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-1.6.1.tgz#678e2dce250ed66e93af409759be22cd6375dd17"

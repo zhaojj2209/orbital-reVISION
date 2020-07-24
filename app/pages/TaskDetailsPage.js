@@ -6,6 +6,7 @@ import {
   Button,
   Alert,
   SafeAreaView,
+  Dimensions,
 } from "react-native";
 import moment from "moment";
 
@@ -143,12 +144,14 @@ export default function TaskDetailsPage({ route, navigation }) {
         <Text style={styles.detailsText}>Description: {description}</Text>
         <Text style={styles.detailsText}>Importance: {importance}</Text>
         <Text style={styles.detailsText}>
-          Expected Completion Time: {expectedCompletionTime}
+          Required Time: {expectedCompletionTime}
           {" hours"}
         </Text>
+
         <Text style={styles.detailsText}>
           Deadline: {formatDateDisplay(deadline)}
         </Text>
+
         <Text style={styles.detailsText}>
           Repeat:{" "}
           {repeat.slice(-8) == "until..."
@@ -215,18 +218,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#fafafa",
   },
   details: {
     padding: 40,
+    width: Dimensions.get("window").width - 44,
   },
 
   detailsText: {
     fontSize: 18,
     textAlign: "left",
     textAlignVertical: "center",
-    lineHeight: 25,
-    padding: 8,
+    lineHeight: 24,
+    paddingVertical: 10,
+    color: "#07689f",
   },
+
   buttonRow: {
     flexDirection: "row",
     justifyContent: "space-around",
