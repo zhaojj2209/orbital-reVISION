@@ -50,12 +50,7 @@ export default function TaskDetailsPage({ route, navigation }) {
   };
 
   const handleSetNextDeadline = async (nextDeadline) => {
-    let newIdentifer = await rescheduleNotif(
-      identifier,
-      title,
-      expectedCompletionTime,
-      nextDeadline
-    );
+    let newIdentifer = await rescheduleNotif(nextDeadline);
 
     taskDoc.update({ deadline: nextDeadline, identifier: newIdentifer }).then(
       Alert.alert("Task completed", "", [
@@ -68,7 +63,15 @@ export default function TaskDetailsPage({ route, navigation }) {
   };
 
   const handleDeleteTask = async () => {
-    await Notifications.cancelScheduledNotificationAsync(identifier);
+    if (
+      moment().isBefore(
+        moment(deadline, "MMMM Do YYYY, h:mm a").subtract({
+          hours: expectedCompletionTime,
+        })
+      )
+    ) {
+      await Notifications.cancelScheduledNotificationAsync(identifier);
+    }
 
     taskDoc.delete().then(() => {
       Alert.alert("Task deleted", "", [
@@ -111,14 +114,17 @@ export default function TaskDetailsPage({ route, navigation }) {
     return identifier;
   }
 
-  async function rescheduleNotif(
-    oldIdentifier,
-    title,
-    expectedCompletionTime,
-    deadline
-  ) {
-    await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
-    return scheduleNotif(title, expectedCompletionTime, deadline);
+  async function rescheduleNotif(newDeadline) {
+    if (
+      moment().isBefore(
+        moment(deadline, "MMMM Do YYYY, h:mm a").subtract({
+          hours: expectedCompletionTime,
+        })
+      )
+    ) {
+      await Notifications.cancelScheduledNotificationAsync(identifier);
+    }
+    return scheduleNotif(title, expectedCompletionTime, newDeadline);
   }
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -215,6 +221,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#fafafa",
   },
+
   details: {
     padding: 40,
     width: Dimensions.get("window").width - 44,

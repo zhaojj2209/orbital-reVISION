@@ -10,6 +10,7 @@ import {
 
 import { getEventsDb } from "../FirebaseDb";
 import { formatDateDisplay, formatDate } from "../constants/DateFormats";
+import moment from "moment";
 
 export default function EventDetailsPage({ route, navigation }) {
   const { userId, event, categories } = route.params;
@@ -28,7 +29,13 @@ export default function EventDetailsPage({ route, navigation }) {
   const eventsDb = getEventsDb(userId);
 
   const handleDeleteEvent = async () => {
-    await Notifications.cancelScheduledNotificationAsync(identifier);
+    if (
+      moment().isBefore(
+        moment(startDate, "T00:00:00.000+08:00").subtract({ minutes: 30 })
+      )
+    ) {
+      await Notifications.cancelScheduledNotificationAsync(identifier);
+    }
     eventsDb
       .doc(event.key)
       .delete()
@@ -48,9 +55,18 @@ export default function EventDetailsPage({ route, navigation }) {
       .get()
       .then((querySnapshot) => {
         querySnapshot.docs.forEach(async (documentSnapshot) => {
-          await Notifications.cancelScheduledNotificationAsync(
-            documentSnapshot.data().identifier
-          );
+          if (
+            moment().isBefore(
+              moment(
+                documentSnapshot.data().startDate,
+                "T00:00:00.000+08:00"
+              ).subtract({ minutes: 30 })
+            )
+          ) {
+            await Notifications.cancelScheduledNotificationAsync(
+              documentSnapshot.data().identifier
+            );
+          }
           documentSnapshot.ref.delete();
         });
       })
