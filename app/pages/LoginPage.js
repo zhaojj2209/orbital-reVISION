@@ -1,4 +1,4 @@
-import React, { useState, Component } from "react";
+import React, { useState } from "react";
 import {
   View,
   TextInput,
@@ -7,12 +7,9 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
-  StatusBar,
-  Text,
 } from "react-native";
 
 import firebase from "../FirebaseDb";
-import globalStyles from "../constants/GlobalStyles";
 
 export default function LoginPage({ navigation }) {
   const [email, setEmail] = useState("");

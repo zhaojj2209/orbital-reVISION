@@ -10,13 +10,12 @@ import {
   Keyboard,
   Alert,
   Picker,
-  ScrollView,
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from "moment";
 import * as Notifications from "expo-notifications";
 
-import firebase from "../FirebaseDb";
+import { getEventsDb, getTasksDb } from "../FirebaseDb";
 import {
   formatDateDisplay,
   newRoundedDate,
@@ -44,21 +43,14 @@ export default function EventFormPage({ route, navigation }) {
   const [createTask, setCreateTask] = useState(false);
   const [importance, setImportance] = useState("");
   const [expectedCompletionTime, setExpectedCompletionTime] = useState("");
+  const [identifier, setIdentifier] = useState("");
 
   const { userId, isNewEvent, event, categories } = route.params;
   const prevRepeatStatus = isNewEvent ? null : event.data.repeat;
 
-  const eventsDb = firebase
-    .firestore()
-    .collection("users")
-    .doc(userId)
-    .collection("events");
+  const eventsDb = getEventsDb(userId);
 
-  const tasksDb = firebase
-    .firestore()
-    .collection("users")
-    .doc(userId)
-    .collection("tasks");
+  const tasksDb = getTasksDb(userId);
 
   useEffect(() => {
     if (!isNewEvent) {
@@ -72,6 +64,7 @@ export default function EventFormPage({ route, navigation }) {
         repeatId,
         repeatDate,
         taskId,
+        identifier,
       } = event.data;
       setTitle(title);
       setDescription(description);
@@ -81,6 +74,7 @@ export default function EventFormPage({ route, navigation }) {
       setRepeatId(repeatId);
       setRepeatDate(repeatDate);
       setTaskId(taskId);
+      setIdentifier(identifier);
       if (taskId != null) {
         setCreateTask(true);
         tasksDb
@@ -101,16 +95,17 @@ export default function EventFormPage({ route, navigation }) {
     }
   }, [event]);
 
-  const validateImportance = (val) =>
-    typeof val === "string" &&
-    parseInt(val) < 6 &&
-    parseInt(val) > 0 &&
-    Number(val) - parseInt(val) === 0;
+  const validateInputs = () => {
+    const validateImportance = () =>
+      typeof importance === "string" &&
+      parseInt(importance) < 6 &&
+      parseInt(importance) > 0 &&
+      Number(importance) - parseInt(importance) === 0;
 
-  const validateExpectedTime = (val) =>
-    typeof val === "string" && !isNaN(Number(val));
+    const validateExpectedTime = () =>
+      typeof expectedCompletionTime === "string" &&
+      !isNaN(Number(expectedCompletionTime));
 
-  const handleCreateEvent = async () => {
     if (startDate >= endDate) {
       Alert.alert("Event duration invalid!", "", [
         {
@@ -118,12 +113,12 @@ export default function EventFormPage({ route, navigation }) {
           onPress: () => {},
         },
       ]);
+      return false;
     } else if (
       createTask &&
-      (!validateImportance(importance) ||
-        !validateExpectedTime(expectedCompletionTime))
+      (!validateImportance() || !validateExpectedTime())
     ) {
-      if (validateImportance(importance)) {
+      if (validateImportance()) {
         Alert.alert("Task expected completion time must be a number!", "", [
           { text: "OK", onPress: () => {} },
         ]);
@@ -132,7 +127,14 @@ export default function EventFormPage({ route, navigation }) {
           { text: "OK", onPress: () => {} },
         ]);
       }
+      return false;
     } else {
+      return true;
+    }
+  };
+
+  const handleCreateEvent = async () => {
+    if (validateInputs()) {
       let identifier = await scheduleEventNotif(title, startDate);
       eventsDb
         .add({
@@ -202,61 +204,41 @@ export default function EventFormPage({ route, navigation }) {
   };
 
   const handleEditEvent = () => {
-    if (startDate >= endDate) {
-      Alert.alert("Event duration invalid!", "", [
-        {
-          text: "OK",
-          onPress: () => {},
-        },
-      ]);
-    } else if (
-      createTask &&
-      (!validateImportance(importance) ||
-        !validateExpectedTime(expectedCompletionTime))
-    ) {
-      if (validateImportance(importance)) {
-        Alert.alert("Task expected completion time must be a number!", "", [
-          { text: "OK", onPress: () => {} },
-        ]);
-      } else {
-        Alert.alert("Task importance must be an integer from 1 to 5!", "", [
-          { text: "OK", onPress: () => {} },
-        ]);
-      }
-    } else if (prevRepeatStatus != "None") {
-      Alert.alert(
-        "Change all repeated events?",
-        "Past repeated events will be deleted!",
-        [
-          {
-            text: "All events",
-            onPress: () => {
-              eventsDb
-                .where("repeatId", "==", repeatId)
-                .get()
-                .then((querySnapshot) => {
-                  querySnapshot.docs.forEach((documentSnapshot) => {
-                    documentSnapshot.ref.delete();
+    if (validateInputs()) {
+      if (prevRepeatStatus != "None") {
+        Alert.alert(
+          "Change all repeated events?",
+          "Past repeated events will be deleted!",
+          [
+            {
+              text: "All events",
+              onPress: () => {
+                eventsDb
+                  .where("repeatId", "==", repeatId)
+                  .get()
+                  .then((querySnapshot) => {
+                    querySnapshot.docs.forEach((documentSnapshot) => {
+                      documentSnapshot.ref.delete();
+                    });
+                    editEvents();
                   });
-                  editEvents();
-                });
+              },
             },
-          },
-          {
-            text: "This event",
-            onPress: () => editEvents(),
-          },
-        ]
-      );
-    } else {
-      editEvents();
+            {
+              text: "This event",
+              onPress: () => editEvents(),
+            },
+          ]
+        );
+      } else {
+        editEvents();
+      }
     }
   };
 
   const editEvents = async () => {
-    let oldIdentifier = getIdentifier();
     const newIdentifier = await rescheduleEventNotif(
-      oldIdentifier,
+      identifier,
       title,
       startDate
     );
@@ -304,34 +286,46 @@ export default function EventFormPage({ route, navigation }) {
     if (createTask && taskId == null) {
       handleCreateTask(event.key);
     } else if (!createTask && taskId != null) {
-      let identifier = getTaskIdentifier();
-      await Notifications.cancelScheduledNotificationAsync(identifier);
       tasksDb
         .doc(taskId)
-        .delete()
+        .get()
+        .then(async (doc) => {
+          await Notifications.cancelScheduledNotificationAsync(
+            doc.data().identifier
+          );
+          doc.ref.delete();
+        })
         .then(() => {
           eventsDb.doc(event.key).update({
             taskId: null,
           });
         });
     } else if (createTask && taskId != null) {
-      let oldIdentifier = getTaskIdentifier();
-      await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
-      let newIdentifier = scheduleNotif(
-        title,
-        expectedCompletionTime,
-        startDate
-      );
-      tasksDb.doc(taskId).set({
-        title: title,
-        description: description,
-        importance: importance,
-        expectedCompletionTime: expectedCompletionTime,
-        deadline: startDate,
-        repeat: repeat,
-        repeatDate: repeat == "None" ? null : repeatDate,
-        identifier: newIdentifier,
-      });
+      tasksDb
+        .doc(taskId)
+        .get()
+        .then(async (doc) => {
+          await Notifications.cancelScheduledNotificationAsync(
+            doc.data().identifier
+          );
+        })
+        .then(() => {
+          let newIdentifier = scheduleNotif(
+            title,
+            expectedCompletionTime,
+            startDate
+          );
+          tasksDb.doc(taskId).set({
+            title: title,
+            description: description,
+            importance: importance,
+            expectedCompletionTime: expectedCompletionTime,
+            deadline: startDate,
+            repeat: repeat,
+            repeatDate: repeat == "None" ? null : repeatDate,
+            identifier: newIdentifier,
+          });
+        });
     }
   };
 
@@ -391,32 +385,11 @@ export default function EventFormPage({ route, navigation }) {
     return identifier;
   }
 
-  function getIdentifier() {
-    const oldIdentifier = "";
-    eventsDb.get().then((doc) => {
-      const { identifier } = doc.data();
-      oldIdentifier = identifier;
-      console.log(oldIdentifier);
-    });
-    return oldIdentifier;
-  }
-  function getTaskIdentifier() {
-    const oldIdentifier = "";
-    tasksDb.get().then((doc) => {
-      const { identifier } = doc.data();
-      oldIdentifier = identifier;
-      console.log(oldIdentifier);
-    });
-    return oldIdentifier;
-  }
-
   async function rescheduleEventNotif(oldIdentifier, title, startDate) {
     await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
     return scheduleEventNotif(title, startDate);
   }
-  async function deleteNotif(oldIdentifier) {
-    await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
-  }
+
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowAlert: true,

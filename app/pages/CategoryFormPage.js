@@ -14,7 +14,7 @@ import {
 } from "react-native";
 
 import { categoryColours } from "../constants/Colours";
-import firebase from "../FirebaseDb";
+import { getCategoriesDb } from "../FirebaseDb";
 
 export default function CategoryFormPage({ route, navigation }) {
   const [title, setTitle] = useState("");
@@ -22,6 +22,7 @@ export default function CategoryFormPage({ route, navigation }) {
   const [showPicker, setShowPicker] = useState(Platform.OS === "android");
 
   const { userId, isNewCategory, category } = route.params;
+  const categoriesDb = getCategoriesDb(userId);
 
   useEffect(() => {
     if (!isNewCategory) {
@@ -32,11 +33,7 @@ export default function CategoryFormPage({ route, navigation }) {
   }, [category]);
 
   const handleCreateCategory = () =>
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("categories")
+    categoriesDb
       .add({
         title: title,
         colour: colour,
@@ -52,11 +49,7 @@ export default function CategoryFormPage({ route, navigation }) {
       .catch((err) => console.error(err));
 
   const handleEditCategory = () =>
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("categories")
+    categoriesDb
       .doc(category.key)
       .set({
         title: title,

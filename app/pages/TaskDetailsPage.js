@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import moment from "moment";
 
-import firebase from "../FirebaseDb";
+import { getTasksDb } from "../FirebaseDb";
 import { formatDate, formatDateDisplay } from "../constants/DateFormats";
 import * as Notifications from "expo-notifications";
 
@@ -26,12 +26,7 @@ export default function TaskDetailsPage({ route, navigation }) {
     repeatDate,
     identifier,
   } = item.data;
-  const taskDoc = firebase
-    .firestore()
-    .collection("users")
-    .doc(userId)
-    .collection("tasks")
-    .doc(item.key);
+  const taskDoc = getTasksDb(userId).doc(item.key);
 
   const handleRepeat = async () => {
     const interval =
@@ -63,7 +58,7 @@ export default function TaskDetailsPage({ route, navigation }) {
     );
 
     taskDoc.update({ deadline: nextDeadline, identifier: newIdentifer }).then(
-      Alert.alert("Task deleted", "", [
+      Alert.alert("Task completed", "", [
         {
           text: "Ok",
           onPress: () => navigation.navigate("TaskList"),

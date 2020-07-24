@@ -12,7 +12,7 @@ import {
 import moment from "moment";
 import { useIsFocused } from "@react-navigation/native";
 
-import firebase from "../FirebaseDb";
+import { getTasksDb, getSleepSchedule } from "../FirebaseDb";
 import { formatDateDisplay, getHours } from "../constants/DateFormats";
 import { taskColours } from "../constants/Colours";
 
@@ -21,7 +21,14 @@ export default function TaskListScreen({ route, navigation }) {
   const { userId } = route.params;
   const isFocused = useIsFocused();
 
-  useEffect(() => getTasks(), [isFocused]);
+  const tasksDb = getTasksDb(userId);
+  const sleepSchedule = getSleepSchedule(userId);
+
+  useEffect(() => {
+    if (isFocused) {
+      getTasks();
+    }
+  }, [isFocused]);
 
   const getTasks = () => {
     let studyHours;
@@ -50,21 +57,12 @@ export default function TaskListScreen({ route, navigation }) {
         return taskColours.overdue;
       }
     }
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("sleep")
-      .doc("schedule")
+    sleepSchedule
       .get()
       .then((doc) => {
         const { wakeTime, sleepTime } = doc.data();
         studyHours = (sleepTime - wakeTime) / getHours(1) / 3;
-        firebase
-          .firestore()
-          .collection("users")
-          .doc(userId)
-          .collection("tasks")
+        tasksDb
           .orderBy("deadline")
           .get()
           .then((querySnapshot) => {

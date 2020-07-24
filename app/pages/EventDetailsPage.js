@@ -8,7 +8,7 @@ import {
   Alert,
 } from "react-native";
 
-import firebase from "../FirebaseDb";
+import { getEventsDb } from "../FirebaseDb";
 import { formatDateDisplay, formatDate } from "../constants/DateFormats";
 
 export default function EventDetailsPage({ route, navigation }) {
@@ -25,13 +25,11 @@ export default function EventDetailsPage({ route, navigation }) {
     identifier,
   } = event.data;
 
+  const eventsDb = getEventsDb(userId);
+
   const handleDeleteEvent = async () => {
     await Notifications.cancelScheduledNotificationAsync(identifier);
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("events")
+    eventsDb
       .doc(event.key)
       .delete()
       .then(() =>
@@ -45,11 +43,7 @@ export default function EventDetailsPage({ route, navigation }) {
   };
 
   const handleDeleteAllEvents = () => {
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("events")
+    eventsDb
       .where("repeatId", "==", repeatId)
       .get()
       .then((querySnapshot) => {
