@@ -16,8 +16,7 @@ import * as yup from "yup";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as Notifications from "expo-notifications";
 import moment from "moment";
-import firebase from "../FirebaseDb";
-// import FloatingLabelInput from "../constants/FloatingTextInout";
+import { getTasksDb } from "../FirebaseDb";
 
 import {
   newRoundedDate,
@@ -32,11 +31,7 @@ export default function TaskInputPage({ route, navigation }) {
   const [showRepeatPicker, setShowRepeatPicker] = useState(false);
   const [showRepeatDatePicker, setShowRepeatDatePicker] = useState(false);
   const { userId, isNewTask, task } = route.params;
-  const tasksDb = firebase
-    .firestore()
-    .collection("users")
-    .doc(userId)
-    .collection("tasks");
+  const tasksDb = getTasksDb(userId);
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -99,15 +94,6 @@ export default function TaskInputPage({ route, navigation }) {
     return identifier;
   }
 
-  function getIdentifier() {
-    const oldIdentifier = "";
-    tasksDb.get().then((doc) => {
-      const { identifier } = doc.data();
-      oldIdentifier = identifier;
-    });
-    return oldIdentifier;
-  }
-
   async function rescheduleNotif(
     oldIdentifier,
     title,
@@ -148,9 +134,8 @@ export default function TaskInputPage({ route, navigation }) {
   };
 
   const handleEditTask = async (values) => {
-    const oldIdentifier = getIdentifier();
     let newIdentifer = await rescheduleNotif(
-      oldIdentifier,
+      task.data.identifier,
       values.title,
       values.expectedCompletionTime,
       values.deadline

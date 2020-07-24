@@ -13,7 +13,12 @@ import { useIsFocused } from "@react-navigation/native";
 import * as Notifications from "expo-notifications";
 import moment from "moment";
 
-import firebase from "../FirebaseDb";
+import {
+  getEventsDb,
+  getCategoriesDb,
+  getTasksDb,
+  getSleepSchedule,
+} from "../FirebaseDb";
 import {
   formatTime,
   formatDateString,
@@ -38,18 +43,20 @@ export default function CalendarScreen({ route, navigation }) {
 
   useEffect(() => loadItems(todayObject), [events]);
 
+  const eventsDb = getEventsDb(userId);
+  const categoriesDb = getCategoriesDb(userId);
+  const sleepSchedule = getSleepSchedule(userId);
+
   const refreshData = () => {
-    setAgendaItems({});
-    getEvents();
-    getCategories();
+    if (isFocused) {
+      setAgendaItems({});
+      getEvents();
+      getCategories();
+    }
   };
 
   const getEvents = () => {
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("events")
+    eventsDb
       .orderBy("startDate")
       .get()
       .then((querySnapshot) => {
@@ -78,11 +85,7 @@ export default function CalendarScreen({ route, navigation }) {
   };
 
   const getCategories = () => {
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("categories")
+    categoriesDb
       .get()
       .then((querySnapshot) => {
         const results = [];
@@ -138,12 +141,7 @@ export default function CalendarScreen({ route, navigation }) {
     return identifier;
   }
   const scheduleStudySessions = () => {
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("sleep")
-      .doc("schedule")
+    sleepSchedule
       .get()
       .then(async (doc) => {
         if (doc.exists) {
@@ -164,11 +162,7 @@ export default function CalendarScreen({ route, navigation }) {
                   "Study Session",
                   new Date(sessionStart)
                 );
-                firebase
-                  .firestore()
-                  .collection("users")
-                  .doc(userId)
-                  .collection("events")
+                eventsDb
                   .add({
                     title: "Study Session",
                     description: "Time to get work done!",
@@ -192,11 +186,7 @@ export default function CalendarScreen({ route, navigation }) {
                 "Study Session",
                 new Date(nextSessionTime)
               );
-              firebase
-                .firestore()
-                .collection("users")
-                .doc(userId)
-                .collection("events")
+              eventsDb
                 .add({
                   title: "Study Session",
                   description: "Time to get work done!",

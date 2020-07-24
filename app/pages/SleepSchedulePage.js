@@ -12,7 +12,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as Permissions from "expo-permissions";
 import * as Notifications from "expo-notifications";
 
-import firebase from "../FirebaseDb";
+import { getSleepSchedule } from "../FirebaseDb";
 import { formatTime, getHours, today } from "../constants/DateFormats";
 
 export default function SleepSchedulePage({ route, navigation }) {
@@ -28,13 +28,10 @@ export default function SleepSchedulePage({ route, navigation }) {
 
   const { userId } = route.params;
 
+  const sleepSchedule = getSleepSchedule(userId);
+
   useEffect(() => {
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("sleep")
-      .doc("schedule")
+    sleepSchedule
       .get()
       .then((doc) => {
         if (doc.exists) {
@@ -71,12 +68,7 @@ export default function SleepSchedulePage({ route, navigation }) {
   }, [userId]);
 
   const handleEditSleepSchedule = () =>
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("sleep")
-      .doc("schedule")
+    sleepSchedule
       .set({
         wakeTime: wakeTime.getTime() - todayTimestamp,
         sleepTime: sleepTime.getTime() - todayTimestamp,

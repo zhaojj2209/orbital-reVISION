@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 
-import firebase from "../FirebaseDb";
+import { getCategoriesDb, getEventsDb } from "../FirebaseDb";
 
 export default function CategoryList({ route, navigation }) {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -21,13 +21,11 @@ export default function CategoryList({ route, navigation }) {
   const isFocused = useIsFocused();
 
   useEffect(() => getCategories(), [isFocused]);
+  const categoriesDb = getCategoriesDb(userId);
+  const eventsDb = getEventsDb(userId);
 
   const getCategories = () => {
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("categories")
+    categoriesDb
       .orderBy("title")
       .get()
       .then((querySnapshot) => {
@@ -49,19 +47,11 @@ export default function CategoryList({ route, navigation }) {
   };
 
   const handleDeleteCategory = (categoryId) => {
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .collection("categories")
+    categoriesDb
       .doc(categoryId)
       .delete()
       .then(() => {
-        firebase
-          .firestore()
-          .collection("users")
-          .doc(userId)
-          .collection("events")
+        eventsDb
           .where("category", "==", categoryId)
           .get()
           .then((querySnapshot) => {

@@ -14,4 +14,16 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.firestore();
 
+const users = firebase.firestore().collection("users");
+
+export const getEventsDb = (userId) => users.doc(userId).collection("events");
+
+export const getCategoriesDb = (userId) =>
+  users.doc(userId).collection("categories");
+
+export const getTasksDb = (userId) => users.doc(userId).collection("tasks");
+
+export const getSleepSchedule = (userId) =>
+  users.doc(userId).collection("sleep").doc("schedule");
+
 export default firebase;
