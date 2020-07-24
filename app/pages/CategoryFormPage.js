@@ -78,7 +78,7 @@ export default function CategoryFormPage({ route, navigation }) {
         <TextInput
           multiline
           style={styles.textInput}
-          placeholder="Event"
+          placeholder="Category"
           onChangeText={handleUpdateTitle}
           value={title}
           placeholderTextColor="#a2d5f2"

@@ -12,6 +12,10 @@ import { Agenda } from "react-native-calendars";
 import { useIsFocused } from "@react-navigation/native";
 import * as Notifications from "expo-notifications";
 import moment from "moment";
+import { Feather } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import firebase, {
   getEventsDb,
@@ -271,7 +275,7 @@ export default function CalendarScreen({ route, navigation }) {
         renderEmptyDate={() => {
           return (
             <View style={styles.emptyDate}>
-              <Text style={styles.text}>Nothing scheduled!</Text>
+              <Text> </Text>
             </View>
           );
         }}
@@ -281,36 +285,9 @@ export default function CalendarScreen({ route, navigation }) {
         onRefresh={refreshData}
         style={{ flex: 1 }}
       />
-      <Button
-        title="Schedule Study Sessions"
-        style={styles.button}
-        onPress={() =>
-          Alert.alert("Confirm schedule?", "", [
-            {
-              text: "OK",
-              onPress: scheduleStudySessions,
-            },
-            {
-              text: "Cancel",
-              onPress: () => {},
-            },
-          ])
-        }
-      />
-      <View style={styles.bottom}>
-        <Button
-          title="Edit Sleep Schedule"
-          style={styles.button}
-          onPress={() =>
-            navigation.navigate("SleepSchedule", {
-              userId: userId,
-            })
-          }
-        />
-      </View>
-      <View style={styles.bottom}>
-        <Button
-          title="Create New Event"
+
+      <View style={styles.bottomRow}>
+        <TouchableOpacity
           style={styles.button}
           onPress={() =>
             navigation.navigate("EventForm", {
@@ -320,26 +297,79 @@ export default function CalendarScreen({ route, navigation }) {
               categories: categories,
             })
           }
-        />
-        <Button
-          title="Categories"
+        >
+          <Entypo name="add-to-list" size={20} color="#ff7e67" />
+          <Text style={styles.buttonText}>Add Event</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() =>
+            Alert.alert("Confirm schedule?", "", [
+              {
+                text: "OK",
+                onPress: scheduleStudySessions,
+              },
+              {
+                text: "Cancel",
+                onPress: () => {},
+              },
+            ])
+          }
+        >
+          <Feather name="book-open" size={20} color="#ff7e67" />
+          <Text style={styles.buttonText}>Schedule Study Sessions</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.bottom}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() =>
+            navigation.navigate("SleepSchedule", {
+              userId: userId,
+            })
+          }
+        >
+          <MaterialCommunityIcons
+            name="power-sleep"
+            size={20}
+            color="#ff7e67"
+          />
+          <Text style={styles.buttonText}>Sleep Schedule</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           style={styles.button}
           onPress={() =>
             navigation.navigate("CategoryList", {
               userId: userId,
             })
           }
-        />
-        <Button
-          title="Logout"
+        >
+          <AntDesign name="bars" size={20} color="#ff7e67" />
+          <Text style={styles.buttonText}>Categories</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={styles.button}
           onPress={() =>
-            firebase
-              .auth()
-              .signOut()
-              .then(() => navigation.navigate("Login"))
+            Alert.alert("Confirm logout?", "", [
+              {
+                text: "OK",
+                onPress: () =>
+                  firebase
+                    .auth()
+                    .signOut()
+                    .then(() => navigation.navigate("Login")),
+              },
+              {
+                text: "Cancel",
+                onPress: () => {},
+              },
+            ])
           }
-        />
+        >
+          <Feather name="log-out" size={20} color="#ff7e67" />
+          <Text style={styles.buttonText}>Logout</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -370,10 +400,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    paddingBottom: 10,
   },
+  bottomRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+  button: {
+    flexDirection: "row",
+    paddingLeft: 10,
+    paddingRight: 10,
+  },
+  buttonText: { fontSize: 16, paddingLeft: 5, color: "#ff7e67" },
   emptyDate: {
     height: 15,
     flex: 1,
-    paddingTop: 30,
+    marginTop: 52,
+    borderTopWidth: 1,
+    borderTopColor: "#a2d5f2",
+    borderStyle: "solid",
   },
 });

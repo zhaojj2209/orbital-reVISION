@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
+  Alert,
   View,
   Text,
   StyleSheet,
@@ -11,6 +12,8 @@ import {
 } from "react-native";
 import moment from "moment";
 import { useIsFocused } from "@react-navigation/native";
+import { Feather } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
 
 import firebase, { getTasksDb, getSleepSchedule } from "../FirebaseDb";
 import { formatDateDisplay, getHours } from "../constants/DateFormats";
@@ -94,36 +97,40 @@ export default function TaskListScreen({ route, navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.box}>
-        <FlatList
-          data={tasks}
-          renderItem={({ item }) => (
-            <View>
+        {tasks != null && tasks.length ? (
+          <FlatList
+            data={tasks}
+            renderItem={({ item }) => (
               <View>
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate("TaskDetails", {
-                      userId,
-                      item,
-                    })
-                  }
-                  style={StyleSheet.flatten([
-                    styles.card,
-                    { backgroundColor: item.color, flexDirection: "column" },
-                  ])}
-                >
-                  <Text style={styles.title}> {item.data.title}</Text>
-                  <Text style={styles.deadline}>
-                    {formatDateDisplay(item.data.deadline)}
-                  </Text>
-                </TouchableOpacity>
+                <View>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate("TaskDetails", {
+                        userId,
+                        item,
+                      })
+                    }
+                    style={StyleSheet.flatten([
+                      styles.card,
+                      { backgroundColor: item.color, flexDirection: "column" },
+                    ])}
+                  >
+                    <Text style={styles.title}> {item.data.title}</Text>
+                    <Text style={styles.deadline}>
+                      {formatDateDisplay(item.data.deadline)}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
-          )}
-        />
+            )}
+          />
+        ) : (
+          <Text style={styles.title}>No tasks. Create one now!</Text>
+        )}
 
         <View style={styles.buttonRow}>
-          <Button
-            title="Add Tasks"
+          <TouchableOpacity
+            style={styles.button}
             onPress={() => {
               navigation.navigate("TaskInput", {
                 userId: userId,
@@ -131,17 +138,32 @@ export default function TaskListScreen({ route, navigation }) {
                 task: null,
               });
             }}
-          />
-          <Button
-            title="Logout"
+          >
+            <Entypo name="add-to-list" size={20} color="#ff7e67" />
+            <Text style={styles.buttonText}>Add Task</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.button}
             onPress={() =>
-              firebase
-                .auth()
-                .signOut()
-                .then(() => navigation.navigate("Login"))
+              Alert.alert("Confirm logout?", "", [
+                {
+                  text: "OK",
+                  onPress: () =>
+                    firebase
+                      .auth()
+                      .signOut()
+                      .then(() => navigation.navigate("Login")),
+                },
+                {
+                  text: "Cancel",
+                  onPress: () => {},
+                },
+              ])
             }
-          />
+          >
+            <Feather name="log-out" size={20} color="#ff7e67" />
+            <Text style={styles.buttonText}>Logout</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
@@ -156,6 +178,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fafafa",
   },
   box: { marginTop: 24, paddingHorizontal: 18 },
+  button: { flexDirection: "row", paddingBottom: 10, paddingTop: 10 },
+  buttonText: { fontSize: 16, paddingLeft: 10, color: "#ff7e67" },
   card: {
     borderRadius: 6,
     elevation: 3,
