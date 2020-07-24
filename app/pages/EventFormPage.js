@@ -203,7 +203,7 @@ export default function EventFormPage({ route, navigation }) {
       .catch((err) => console.error(err));
   };
 
-  const handleEditEvent = () => {
+  const handleEditEvent = async () => {
     if (validateInputs()) {
       if (prevRepeatStatus != "None") {
         Alert.alert(
@@ -217,31 +217,60 @@ export default function EventFormPage({ route, navigation }) {
                   .where("repeatId", "==", repeatId)
                   .get()
                   .then((querySnapshot) => {
-                    querySnapshot.docs.forEach((documentSnapshot) => {
+                    querySnapshot.docs.forEach(async (documentSnapshot) => {
+                      if (
+                        moment().isBefore(
+                          moment(
+                            documentSnapshot.data().startDate,
+                            "T00:00:00.000+08:00"
+                          ).subtract({ minutes: 30 })
+                        )
+                      ) {
+                        await Notifications.cancelScheduledNotificationAsync(
+                          documentSnapshot.data().identifier
+                        );
+                      }
                       documentSnapshot.ref.delete();
                     });
+
                     editEvents();
                   });
               },
             },
             {
               text: "This event",
-              onPress: () => editEvents(),
+              onPress: async () => {
+                if (
+                  moment().isBefore(
+                    moment(startDate, "T00:00:00.000+08:00").subtract({
+                      minutes: 30,
+                    })
+                  )
+                ) {
+                  await Notifications.cancelScheduledNotificationAsync(
+                    identifier
+                  );
+                }
+                editEvents();
+              },
             },
           ]
         );
       } else {
+        if (
+          moment().isBefore(
+            moment(startDate, "T00:00:00.000+08:00").subtract({ minutes: 30 })
+          )
+        ) {
+          await Notifications.cancelScheduledNotificationAsync(identifier);
+        }
         editEvents();
       }
     }
   };
 
   const editEvents = async () => {
-    const newIdentifier = await rescheduleEventNotif(
-      identifier,
-      title,
-      startDate
-    );
+    const newIdentifier = await scheduleEventNotif(title, startDate);
     eventsDb
       .doc(event.key)
       .set({
@@ -383,11 +412,6 @@ export default function EventFormPage({ route, navigation }) {
               .toDate(),
     });
     return identifier;
-  }
-
-  async function rescheduleEventNotif(oldIdentifier, title, startDate) {
-    await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
-    return scheduleEventNotif(title, startDate);
   }
 
   Notifications.setNotificationHandler({

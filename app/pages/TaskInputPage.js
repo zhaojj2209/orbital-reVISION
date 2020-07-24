@@ -94,16 +94,6 @@ export default function TaskInputPage({ route, navigation }) {
     return identifier;
   }
 
-  async function rescheduleNotif(
-    oldIdentifier,
-    title,
-    expectedCompletionTime,
-    deadline
-  ) {
-    await Notifications.cancelScheduledNotificationAsync(oldIdentifier);
-    return scheduleNotif(title, expectedCompletionTime, deadline);
-  }
-
   const handleCreateTask = async (values) => {
     let identifier = await scheduleNotif(
       values.title,
@@ -134,8 +124,18 @@ export default function TaskInputPage({ route, navigation }) {
   };
 
   const handleEditTask = async (values) => {
-    let newIdentifer = await rescheduleNotif(
-      task.data.identifier,
+    if (
+      moment().isBefore(
+        moment(task.data.deadline, "MMMM Do YYYY, h:mm a").subtract({
+          hours: task.data.expectedCompletionTime,
+        })
+      )
+    ) {
+      await Notifications.cancelScheduledNotificationAsync(
+        tast.data.identifier
+      );
+    }
+    let newIdentifer = await scheduleNotif(
       values.title,
       values.expectedCompletionTime,
       values.deadline
@@ -289,7 +289,7 @@ export default function TaskInputPage({ route, navigation }) {
               <View style={styles.topDates}>
                 <Text style={styles.dateText}>Deadline: </Text>
                 <TouchableOpacity onPress={handleShowDatePicker}>
-                  <Text style={styles.dateText}>
+                  <Text style={styles.touchableText}>
                     {formatDateDisplay(values.deadline)}
                   </Text>
                 </TouchableOpacity>
@@ -308,14 +308,14 @@ export default function TaskInputPage({ route, navigation }) {
               <View style={styles.dates}>
                 <Text style={styles.dateText}>Repeat:</Text>
                 <TouchableOpacity onPress={handleToggleRepeatPicker}>
-                  <Text style={styles.dateText}>{values.repeat}</Text>
+                  <Text style={styles.touchableText}>{values.repeat}</Text>
                 </TouchableOpacity>
               </View>
               {values.repeat.slice(-8) == "until..." && (
                 <View style={styles.dates}>
                   <Text style={styles.dateText}>Repeat until:</Text>
                   <TouchableOpacity onPress={toggleRepeatDatePicker}>
-                    <Text style={styles.dateText}>
+                    <Text style={styles.touchableText}>
                       {formatDate(values.repeatDate)}
                     </Text>
                   </TouchableOpacity>
@@ -373,18 +373,13 @@ const styles = StyleSheet.create({
   topDates: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-around",
-    marginTop: 10,
-    paddingLeft: 10,
-    paddingRight: 10,
+    justifyContent: "space-between",
+    width: 300,
   },
   dates: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    marginTop: 15,
-    paddingLeft: 10,
-    paddingRight: 10,
   },
 
   textInput: {
@@ -400,6 +395,11 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 18,
     color: "#07689f",
+  },
+  touchableText: {
+    padding: 10,
+    fontSize: 18,
+    color: "#ff7e67",
   },
   errorText: {
     marginBottom: 0,
