@@ -7,6 +7,7 @@ import {
   Button,
   Alert,
 } from "react-native";
+import * as Notifications from "expo-notifcations";
 
 import { getEventsDb } from "../FirebaseDb";
 import { formatDateDisplay, formatDate } from "../constants/DateFormats";
