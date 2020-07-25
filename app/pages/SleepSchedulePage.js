@@ -52,7 +52,6 @@ export default function SleepSchedulePage({ route, navigation }) {
         exisitingStatus = status;
       }
       if (exisitingStatus !== "granted") {
-        Alert.alert("Permission not granted");
         return;
       }
 

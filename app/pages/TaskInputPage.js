@@ -132,7 +132,7 @@ export default function TaskInputPage({ route, navigation }) {
       )
     ) {
       await Notifications.cancelScheduledNotificationAsync(
-        tast.data.identifier
+        task.data.identifier
       );
     }
     let newIdentifer = await scheduleNotif(
