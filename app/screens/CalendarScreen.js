@@ -160,7 +160,7 @@ export default function CalendarScreen({ route, navigation }) {
               const sessionStart = nextSessionTime;
               const sessionEnd = startDate.getTime() - bufferTime;
               nextSessionTime = endDate.getTime() + bufferTime;
-              if (sessionEnd - sessionStart > minimumSessionTime) {
+              if (sessionEnd - sessionStart >= minimumSessionTime) {
                 const identifier = await scheduleEventNotif(
                   "Study Session",
                   new Date(sessionStart)
