@@ -13,6 +13,8 @@ import { getEventsDb } from "../FirebaseDb";
 import { formatDateDisplay, formatDate } from "../constants/DateFormats";
 import moment from "moment";
 
+console.disableYellowBox = true;
+
 export default function EventDetailsPage({ route, navigation }) {
   const { userId, event, categories } = route.params;
   const {

@@ -14,6 +14,8 @@ import { useIsFocused } from "@react-navigation/native";
 
 import { getCategoriesDb, getEventsDb } from "../FirebaseDb";
 
+console.disableYellowBox = true;
+
 export default function CategoryList({ route, navigation }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [categories, setCategories] = useState(null);

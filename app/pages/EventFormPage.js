@@ -24,6 +24,8 @@ import {
   today,
 } from "../constants/DateFormats";
 
+console.disableYellowBox = true;
+
 export default function EventFormPage({ route, navigation }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");

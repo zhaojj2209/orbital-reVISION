@@ -19,6 +19,8 @@ import firebase, { getTasksDb, getSleepSchedule } from "../FirebaseDb";
 import { formatDateDisplay, getHours } from "../constants/DateFormats";
 import { taskColours } from "../constants/Colours";
 
+console.disableYellowBox = true;
+
 export default function TaskListScreen({ route, navigation }) {
   const [tasks, setTasks] = useState(null);
   const { userId } = route.params;

@@ -14,6 +14,8 @@ import { getTasksDb } from "../FirebaseDb";
 import { formatDate, formatDateDisplay } from "../constants/DateFormats";
 import * as Notifications from "expo-notifications";
 
+console.disableYellowBox = true;
+
 export default function TaskDetailsPage({ route, navigation }) {
   const { userId, item } = route.params;
   const {

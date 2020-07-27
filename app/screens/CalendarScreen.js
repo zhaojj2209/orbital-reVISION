@@ -32,6 +32,8 @@ import {
 } from "../constants/DateFormats";
 import { categoryColours } from "../constants/Colours";
 
+console.disableYellowBox = true;
+
 export default function CalendarScreen({ route, navigation }) {
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);

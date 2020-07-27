@@ -16,6 +16,8 @@ import {
 import { categoryColours } from "../constants/Colours";
 import { getCategoriesDb } from "../FirebaseDb";
 
+console.disableYellowBox = true;
+
 export default function CategoryFormPage({ route, navigation }) {
   const [title, setTitle] = useState("");
   const [colour, setColour] = useState(categoryColours.one);

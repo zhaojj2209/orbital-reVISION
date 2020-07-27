@@ -15,6 +15,8 @@ import * as Notifications from "expo-notifications";
 import { getSleepSchedule } from "../FirebaseDb";
 import { formatTime, getHours, today } from "../constants/DateFormats";
 
+console.disableYellowBox = true;
+
 export default function SleepSchedulePage({ route, navigation }) {
   const todayTimestamp = today.getTime();
   const [wakeTime, setWakeTime] = useState(

@@ -26,6 +26,8 @@ import {
   today,
 } from "../constants/DateFormats";
 
+console.disableYellowBox = true;
+
 export default function TaskInputPage({ route, navigation }) {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [showRepeatPicker, setShowRepeatPicker] = useState(false);

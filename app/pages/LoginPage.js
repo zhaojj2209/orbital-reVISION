@@ -11,6 +11,8 @@ import {
 
 import firebase from "../FirebaseDb";
 
+console.disableYellowBox = true;
+
 export default function LoginPage({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
